@@ -1,16 +1,23 @@
 package ai.axcess.drivers;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
+import android.Manifest;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.location.LocationManager;
 import android.media.AudioManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.provider.Settings;
@@ -35,6 +42,7 @@ public class MainActivity extends AppCompatActivity {
     String responseLocation;
     String cunq;
     String fname;
+    LocationManager locationManager;
 
     SharedPreferences sharedpreferences;
     int autoSave;
@@ -49,8 +57,22 @@ public class MainActivity extends AppCompatActivity {
         String thisdevice = Settings.Secure.getString(this.getContentResolver(),
                 Settings.Secure.ANDROID_ID);
 
-        Intent i = new Intent(this, MyService.class);
-        this.startService(i);
+
+
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) ==
+                PackageManager.PERMISSION_GRANTED &&
+                ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) ==
+                        PackageManager.PERMISSION_GRANTED) {
+            // Permission already Granted
+            //Do your work here
+            //Perform operations here only which requires permission
+            Intent i = new Intent(this, MyService.class);
+            this.startService(i);
+
+        } else {
+
+        }
+
 
         AudioManager am =
                 (AudioManager) getSystemService(Context.AUDIO_SERVICE);
@@ -62,6 +84,15 @@ public class MainActivity extends AppCompatActivity {
 
         llogin = (Button)findViewById(R.id.llogin);
         pin = (EditText)findViewById(R.id.driverno);
+
+
+
+
+
+
+
+
+
 
 
         boolean connected = false;
@@ -149,41 +180,22 @@ public class MainActivity extends AppCompatActivity {
         }
 
 
-
-
-
-
-
-
     }
+
+
+
 
     @Override
-    public void onResume() {
-        super.onResume();
-        // This registers messageReceiver to receive messages.
-        LocalBroadcastManager.getInstance(this)
-                .registerReceiver(messageReceiver, new IntentFilter("my-message"));
-    }
-
-    // Handling the received Intents for the "my-integer" event
-    private BroadcastReceiver messageReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            // Extract data included in the Intent
-            String myout = intent.getStringExtra("send"); // -1 is going to be used as the default value
-            Log.i("SUCC", myout);
-
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+      super.onRequestPermissionsResult(requestCode,permissions,grantResults);
+        if (requestCode == 1) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                //Permission Granted
+                //Do your work here
+                //Perform operations here only which requires permission
+            }
         }
-    };
-
-
-    @Override
-    protected void onPause() {
-        // Unregister since the activity is not visible
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(messageReceiver);
-        super.onPause();
     }
-
 
 
     public String postLogin( String thispin ) {

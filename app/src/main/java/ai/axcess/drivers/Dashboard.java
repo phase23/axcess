@@ -2,9 +2,12 @@ package ai.axcess.drivers;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
@@ -34,6 +37,7 @@ public class Dashboard extends AppCompatActivity {
 
     TextView driver;
     TextView shiftstate;
+    TextView locationstate;
     Button shift;
     Button llogout;
     String responseLocation;
@@ -66,6 +70,7 @@ public class Dashboard extends AppCompatActivity {
 
         driver = (TextView)findViewById(R.id.drivername);
         shiftstate = (TextView)findViewById(R.id.whatshift);
+        locationstate = (TextView)findViewById(R.id.alertlocation);
 
         driver.setText(fname);
 
@@ -272,6 +277,34 @@ public class Dashboard extends AppCompatActivity {
 
     public void setState(int newName) {
         this.name = newName;
+    }
+
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        // This registers messageReceiver to receive messages.
+        LocalBroadcastManager.getInstance(this)
+                .registerReceiver(messageReceiver, new IntentFilter("my-message"));
+    }
+
+    // Handling the received Intents for the "my-integer" event
+    private BroadcastReceiver messageReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            // Extract data included in the Intent
+            String myout = intent.getStringExtra("send"); // -1 is going to be used as the default value
+            locationstate.setText(myout);
+
+        }
+    };
+
+
+    @Override
+    protected void onPause() {
+        // Unregister since the activity is not visible
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(messageReceiver);
+        super.onPause();
     }
 
 
