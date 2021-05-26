@@ -1,0 +1,280 @@
+package ai.axcess.drivers;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
+
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.os.Bundle;
+import android.provider.Settings;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import java.io.IOException;
+
+import okhttp3.MultipartBody;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+
+import static android.graphics.Color.GREEN;
+import static android.graphics.Color.RED;
+
+public class Dashboard extends AppCompatActivity {
+
+
+    TextView driver;
+    TextView shiftstate;
+    Button shift;
+    Button llogout;
+    String responseLocation;
+    String fname;
+    String cunq;
+    private int name;
+    int newstate;
+
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_dashboard);
+
+        SharedPreferences shared = getSharedPreferences("autoLogin", MODE_PRIVATE);
+        SharedPreferences.Editor prefsEditor = shared.edit();
+        int j = shared.getInt("key", 0);
+
+
+        if(j > 0) {
+            fname = shared.getString("sendfname", "");
+            cunq = shared.getString("driver", "");
+        }else {
+             fname = getIntent().getExtras().getString("sendfname");
+              cunq = getIntent().getExtras().getString("driver");
+        }
+
+        shift = (Button)findViewById(R.id.Startshift);
+        llogout = (Button)findViewById(R.id.logout);
+
+        driver = (TextView)findViewById(R.id.drivername);
+        shiftstate = (TextView)findViewById(R.id.whatshift);
+
+        driver.setText(fname);
+
+        getShift(cunq);
+
+
+
+        llogout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                shared.edit().clear().commit();
+                Intent intent = new Intent(Dashboard.this, MainActivity.class);
+
+                startActivity(intent);
+
+            }
+
+        });
+
+
+
+
+        shift.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+
+                boolean connected = false;
+                ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+                if (connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_MOBILE).getState() == NetworkInfo.State.CONNECTED ||
+                        connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI).getState() == NetworkInfo.State.CONNECTED) {
+                    //we are connected to a network
+                    connected = true;
+                } else {
+                    connected = false;
+                }
+
+
+
+                if(!connected) {
+                    Toast.makeText(getApplicationContext(), "Check Internet & Restart App", Toast.LENGTH_LONG).show();
+                    Intent nointernet = new Intent(Dashboard.this, Nointernet.class);
+                    startActivity(nointernet);
+
+                    }else {
+                        shiftstate.setText("Please wait..");
+                        int returnstate = getState();
+                        Shiftactionset(cunq, returnstate);
+                    }
+
+            }
+
+        });
+
+
+    }
+
+
+    public void getShift(String cunq){
+
+        String returnshift = Shiftaction(cunq );
+        returnshift = returnshift.trim();
+
+        int myNum = 0;
+        try {
+            myNum = Integer.parseInt(returnshift);
+        } catch(NumberFormatException nfe) {
+            System.out.println("Could not parse " + nfe);
+        }
+
+
+        System.out.println("shift url  " + myNum);
+        setState(myNum);
+
+        if(myNum == 0) {
+
+            shiftstate.setText("Off Shift");
+
+            shift.setBackgroundColor(Color.RED);
+
+        }
+
+        if(myNum == 1) {
+
+            System.out.println("shift url  " + myNum);
+            shift.setBackgroundColor(GREEN);
+            shiftstate.setText("On Shift");
+
+
+        }
+
+
+    }
+
+
+    public void Shiftactionset(String cunq, int State){
+        String thisdevice = Settings.Secure.getString(this.getContentResolver(),
+                Settings.Secure.ANDROID_ID);
+
+        if(State == 0) {
+            newstate = 1;
+        }
+
+        if(State == 1) {
+            newstate = 0;
+        }
+
+
+        String url = "https://axcess.ai/barapp/driver_shiftaction.php?&action=changeshift&cunq="+cunq + "&changestate=" + newstate;
+        Log.i("action url",url);
+        OkHttpClient client = new OkHttpClient();
+        RequestBody requestBody = new MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
+
+                .addFormDataPart("what","this" )
+
+                .build();
+        Request request = new Request.Builder()
+                .url(url)//your webservice url
+                .post(requestBody)
+                .build();
+        try {
+            //String responseBody;
+            okhttp3.Response response = client.newCall(request).execute();
+            // Response response = client.newCall(request).execute();
+            if (response.isSuccessful()){
+                Log.i("SUCC",""+response.message());
+            }
+            String resp = response.message();
+            responseLocation =  response.body().string().trim();
+            Log.i("respBody:main",responseLocation);
+            Log.i("MSG",resp);
+
+            if(responseLocation.equals("updated")){
+                setState(newstate);
+
+                if(newstate == 0) {
+                    shift.setBackgroundColor(RED);
+                    shiftstate.setText("Off Shift");
+                }
+
+                if(newstate == 1) {
+                    shift.setBackgroundColor(GREEN);
+                    shiftstate.setText("On Shift");
+                }
+
+
+
+            }
+
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
+    }//end function
+
+
+
+
+
+
+    public String Shiftaction( String cunq ) {
+
+        String thisdevice = Settings.Secure.getString(this.getContentResolver(),
+                Settings.Secure.ANDROID_ID);
+
+        String url = "https://axcess.ai/barapp/driver_shiftaction.php?&action=getshift&cunq="+cunq;
+        Log.i("action url",url);
+        OkHttpClient client = new OkHttpClient();
+        RequestBody requestBody = new MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
+
+                .addFormDataPart("what","this" )
+
+                .build();
+        Request request = new Request.Builder()
+                .url(url)//your webservice url
+                .post(requestBody)
+                .build();
+        try {
+            //String responseBody;
+            okhttp3.Response response = client.newCall(request).execute();
+            // Response response = client.newCall(request).execute();
+            if (response.isSuccessful()){
+                Log.i("SUCC",""+response.message());
+            }
+            String resp = response.message();
+            responseLocation =  response.body().string();
+            Log.i("respBody:main",responseLocation);
+            Log.i("MSG",resp);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return responseLocation;
+    }
+
+
+
+    public int getState() {
+        return name;
+    }
+
+    public void setState(int newName) {
+        this.name = newName;
+    }
+
+
+
+
+}

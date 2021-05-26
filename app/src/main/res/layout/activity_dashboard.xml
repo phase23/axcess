@@ -1,0 +1,188 @@
+<TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    android:shrinkColumns="*"
+    android:stretchColumns="*"
+    tools:context=".Dashboard">
+
+    <TableRow
+        android:id="@+id/tableRow1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:paddingTop="20dp"
+        android:paddingLeft="20dp"
+        android:paddingRight="20dp">
+
+        <TextView
+            android:id="@+id/drivername"
+
+
+            android:layout_width="154dp"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="false"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="false"
+            android:layout_gravity="top|left"
+            android:paddingLeft="25dp"
+            android:paddingTop="15dp"
+            android:text="TextView"
+            android:textSize="20dp"
+            tools:layout_editor_absoluteX="112dp"
+            tools:layout_editor_absoluteY="112dp" />
+
+
+        <Button
+            android:layout_column="1"
+            android:id="@+id/logout"
+            android:layout_width="140dp"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:layout_centerHorizontal="true"
+            android:layout_gravity="center"
+            android:width="100dp"
+            android:gravity="center|left"
+            android:text="Logout" />
+
+
+    </TableRow>
+
+
+    <TableRow
+        android:id="@+id/tableRow2"
+        android:layout_width="match_parent"
+        android:layout_height="30dp"
+        android:gravity="center"
+        android:paddingTop="20dp">
+<!--
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="2dp"
+            android:layout_gravity="bottom|center"
+            android:background="#c0c0c0" />
+-->
+    </TableRow>
+
+
+    <TableRow
+        android:id="@+id/tableRow3"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:paddingTop="70dp"
+        android:paddingRight="20dp">
+
+        <Button
+            android:id="@+id/vieworders"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:layout_centerHorizontal="true"
+            android:layout_gravity="center"
+            android:width="228dip"
+            android:height="80dip"
+            android:text="View Orders"
+            android:textColor="#000000"
+            android:textColorHighlight="#000000"
+            android:textSize="20sp"
+            app:backgroundTint="#FFFFFF"
+            app:strokeColor="#000000"
+            app:strokeWidth="1dip"
+            tools:layout_editor_absoluteX="532dp"
+            tools:layout_editor_absoluteY="680dp" />
+    </TableRow>
+
+    <TableRow
+        android:id="@+id/tableRow4"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:paddingTop="60dp"
+        android:paddingRight="20dp">
+
+        <Button
+            android:id="@+id/viewearnings"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:layout_centerHorizontal="true"
+            android:layout_gravity="center"
+            android:width="228dip"
+            android:height="80dip"
+            android:text="Earnings"
+            android:textColor="#000000"
+            android:textColorHighlight="#000000"
+            android:textSize="20sp"
+            app:backgroundTint="#FFFFFF"
+            app:strokeColor="#000000"
+            app:strokeWidth="1dip" />
+
+
+    </TableRow>
+
+
+    <TableRow
+        android:id="@+id/tableRow5"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:paddingTop="20dp">
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="2dp"
+            android:layout_gravity="bottom|center"
+            android:background="#c0c0c0" />
+
+    </TableRow>
+
+
+    <TableRow
+        android:id="@+id/tableRow6"
+        android:layout_width="0dp"
+        android:paddingLeft="20dp"
+        android:layout_height="wrap_content"
+
+        android:paddingTop="110dp">
+
+
+        <Button
+            android:id="@+id/Startshift"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="left"
+            android:text="S"
+            android:textColor="#000000"
+            android:textSize="50sp" />
+
+
+        <TextView
+            android:id="@+id/whatshift"
+
+
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+
+            android:layout_gravity="center"
+            android:paddingTop="25dp"
+            android:paddingRight="25dp"
+            android:text="TextView"
+            android:textSize="20dp"
+            android:textStyle="bold" />
+
+
+    </TableRow>
+
+
+
+
+</TableLayout>
