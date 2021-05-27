@@ -21,7 +21,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Drivers">
-        <activity android:name=".Startgps"></activity>
+        <activity android:name=".Vieworders"></activity>
+        <activity android:name=".Startgps" />
         <activity android:name=".Dashboard" />
         <activity android:name=".Nointernet" />
 

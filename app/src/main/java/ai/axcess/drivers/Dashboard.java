@@ -98,6 +98,20 @@ public class Dashboard extends AppCompatActivity {
         });
 
 
+        viewinorders.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                viewinorders.setBackgroundColor(getResources().getColor(R.color.gray));
+                Intent intent = new Intent(Dashboard.this, Vieworders.class);
+
+                startActivity(intent);
+
+
+            }
+        });
+
+
+
 
 
         shift.setOnClickListener(new View.OnClickListener() {
