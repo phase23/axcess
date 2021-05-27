@@ -7,8 +7,10 @@ import androidx.core.content.ContextCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import android.Manifest;
+import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
@@ -66,6 +68,7 @@ public class MainActivity extends AppCompatActivity {
             // Permission already Granted
             //Do your work here
             //Perform operations here only which requires permission
+
             Intent i = new Intent(this, MyService.class);
             this.startService(i);
 
@@ -232,6 +235,9 @@ public class MainActivity extends AppCompatActivity {
         }
         return responseLocation;
     }
+
+
+
 
 
 

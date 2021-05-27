@@ -21,26 +21,28 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Drivers">
-        <activity android:name=".Dashboard"></activity>
+        <activity android:name=".Startgps"></activity>
+        <activity android:name=".Dashboard" />
         <activity android:name=".Nointernet" />
-
 
         <service
             android:name=".MyService"
             android:enabled="true" />
 
-
-        <receiver android:enabled="true" android:name="ai.axcess.drivers.BootUpReceiver"
+        <receiver
+            android:name=".BootUpReceiver"
+            android:enabled="true"
             android:permission="android.permission.RECEIVE_BOOT_COMPLETED">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
+
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </receiver>
 
-
-        <activity android:name=".MainActivity"
-            android:screenOrientation="portrait" >
+        <activity
+            android:name=".MainActivity"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

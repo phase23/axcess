@@ -4,14 +4,18 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
+import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
+import android.content.ContentResolver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
+import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
@@ -31,6 +35,7 @@ import okhttp3.RequestBody;
 
 import static android.graphics.Color.GREEN;
 import static android.graphics.Color.RED;
+import static android.graphics.Color.blue;
 
 public class Dashboard extends AppCompatActivity {
 
@@ -39,10 +44,12 @@ public class Dashboard extends AppCompatActivity {
     TextView shiftstate;
     TextView locationstate;
     Button shift;
+    Button viewinorders;
     Button llogout;
     String responseLocation;
     String fname;
     String cunq;
+    String isgpson;
     private int name;
     int newstate;
 
@@ -56,7 +63,7 @@ public class Dashboard extends AppCompatActivity {
         SharedPreferences.Editor prefsEditor = shared.edit();
         int j = shared.getInt("key", 0);
 
-
+        registerReceiver(gpsReceiver, new IntentFilter(LocationManager.PROVIDERS_CHANGED_ACTION));
         if(j > 0) {
             fname = shared.getString("sendfname", "");
             cunq = shared.getString("driver", "");
@@ -67,15 +74,15 @@ public class Dashboard extends AppCompatActivity {
 
         shift = (Button)findViewById(R.id.Startshift);
         llogout = (Button)findViewById(R.id.logout);
+        viewinorders = (Button)findViewById(R.id.vieworders);
 
         driver = (TextView)findViewById(R.id.drivername);
         shiftstate = (TextView)findViewById(R.id.whatshift);
-        locationstate = (TextView)findViewById(R.id.alertlocation);
 
         driver.setText(fname);
 
         getShift(cunq);
-
+        checklocationstatus();
 
 
         llogout.setOnClickListener(new View.OnClickListener() {
@@ -98,28 +105,10 @@ public class Dashboard extends AppCompatActivity {
             public void onClick(View v) {
 
 
-                boolean connected = false;
-                ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-                if (connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_MOBILE).getState() == NetworkInfo.State.CONNECTED ||
-                        connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI).getState() == NetworkInfo.State.CONNECTED) {
-                    //we are connected to a network
-                    connected = true;
-                } else {
-                    connected = false;
-                }
-
-
-
-                if(!connected) {
-                    Toast.makeText(getApplicationContext(), "Check Internet & Restart App", Toast.LENGTH_LONG).show();
-                    Intent nointernet = new Intent(Dashboard.this, Nointernet.class);
-                    startActivity(nointernet);
-
-                    }else {
                         shiftstate.setText("Please wait..");
                         int returnstate = getState();
                         Shiftactionset(cunq, returnstate);
-                    }
+                       checklocationstatus();
 
             }
 
@@ -294,10 +283,82 @@ public class Dashboard extends AppCompatActivity {
         public void onReceive(Context context, Intent intent) {
             // Extract data included in the Intent
             String myout = intent.getStringExtra("send"); // -1 is going to be used as the default value
-            locationstate.setText(myout);
+            if(myout.equals("redbtn")) {
+                viewinorders.setBackgroundColor(RED);
+            }
+
+            if(myout.equals("whitebtn")) {
+                viewinorders.setBackgroundColor(getResources().getColor(android.R.color.white));
+            }
+
+
 
         }
     };
+
+    private BroadcastReceiver gpsReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent.getAction().matches(LocationManager.PROVIDERS_CHANGED_ACTION)) {
+                //Do your stuff on GPS status change
+
+
+                new Helpers(context).checklocationstatus();
+                Toast.makeText(getApplicationContext(), "GPS changed ", Toast.LENGTH_LONG).show();
+            }
+        }
+    };
+
+
+
+    public void checklocationstatus(){
+
+        LocationManager lm = (LocationManager)getApplication().getSystemService(Context.LOCATION_SERVICE);
+        boolean gps_enabled = false;
+        boolean network_enabled = false;
+
+        try {
+            gps_enabled = lm.isProviderEnabled(LocationManager.GPS_PROVIDER);
+        } catch(Exception ex) {}
+
+        try {
+            network_enabled = lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+        } catch(Exception ex) {}
+
+        if(!gps_enabled && !network_enabled) {
+            // notify user
+            //new AlertDialog.Builder(context)
+            Shiftactionset(cunq, 1);
+
+            android.app.AlertDialog.Builder dialog = new AlertDialog.Builder(Dashboard.this);
+            dialog.setCancelable(false);
+            dialog.setTitle("GPS STATUS");
+            dialog.setMessage("Your GPS is not enabled");
+            dialog.setPositiveButton("Start GPS", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int id) {
+                    //getApplication().startActivity(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS));
+                    Intent nointernet = new Intent(Dashboard.this, Startgps.class);
+                    startActivity(nointernet);
+
+                }
+            })
+                    .setNegativeButton("No ", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            //Action for "Cancel".
+                        }
+
+                    });
+            final AlertDialog alert = dialog.create();
+            alert.show();
+
+
+        }
+
+    }
+
+
 
 
     @Override

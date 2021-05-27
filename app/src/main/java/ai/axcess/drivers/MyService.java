@@ -42,7 +42,8 @@ public class MyService extends Service {
     String responseBody;
     String cunq;
     MediaPlayer player;
-
+    String responseLocation;
+    private final int TWENTY_SECONDS = 2000;
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -97,7 +98,18 @@ public class MyService extends Service {
         StrictMode.setThreadPolicy(policy);
 
 
+        handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            public void run() {
 
+
+
+                isneworder(cunq);
+
+                // this method will contain your almost-finished HTTP calls
+                handler.postDelayed(this, TWENTY_SECONDS);
+            }
+        }, TWENTY_SECONDS);
 
 
 
@@ -145,7 +157,7 @@ public class MyService extends Service {
 
         if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
 
-            sendlocationerrorToActivity();
+           // sendlocationerrorToActivity();
         } else {
 
 
@@ -216,23 +228,23 @@ public class MyService extends Service {
     }
 
 
-    private void sendlocationerrorToActivity()
+    private void sendalerttoActivity(String msg)
     {
         Intent intent = new Intent("my-message");
         // Adding some data
-        intent.putExtra("send", "Enable your location to continue");
+        intent.putExtra("send", msg);
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
 
     }
 
 
-    public void isneworder() {
+    public void isneworder(String driverid) {
 
 
         String thisdevice = Settings.Secure.getString(this.getContentResolver(),
                 Settings.Secure.ANDROID_ID);
 
-        String url = "https://axcess.ai/barapp/isneworder.php?action=checkdevice&token="+thisdevice;
+        String url = "https://axcess.ai/barapp/driver_isneworder.php?action=checkorder&driverid="+driverid;
         Log.i("action url",url);
         OkHttpClient client = new OkHttpClient();
         RequestBody requestBody = new MultipartBody.Builder()
@@ -269,9 +281,10 @@ public class MyService extends Service {
                     player.stop();
                 }
 
+                sendalerttoActivity("whitebtn");
             }else {
 
-
+                sendalerttoActivity("redbtn");
                 player = MediaPlayer.create(this, R.raw.beep08b);
                 player.setVolume(20, 20);
                 player.start();

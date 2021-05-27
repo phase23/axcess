@@ -58,24 +58,7 @@
         android:layout_width="match_parent"
         android:layout_height="30dp"
         android:gravity="center"
-        android:paddingTop="20dp">
-
-
-        <TextView
-            android:id="@+id/alertlocation"
-            android:layout_width="154dp"
-            android:layout_height="wrap_content"
-
-            android:layout_gravity="center"
-            android:paddingLeft="25dp"
-            android:paddingTop="15dp"
-            android:text="TextView"
-            android:textColor="#F44336"
-            android:textSize="20dp"
-            tools:layout_editor_absoluteX="112dp"
-            tools:layout_editor_absoluteY="112dp" />
-
-    </TableRow>
+        android:paddingTop="20dp"/>
 
 
     <TableRow
