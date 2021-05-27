@@ -12,6 +12,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
@@ -58,6 +59,7 @@ public class Dashboard extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dashboard);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
         SharedPreferences shared = getSharedPreferences("autoLogin", MODE_PRIVATE);
         SharedPreferences.Editor prefsEditor = shared.edit();
@@ -299,10 +301,12 @@ public class Dashboard extends AppCompatActivity {
             String myout = intent.getStringExtra("send"); // -1 is going to be used as the default value
             if(myout.equals("redbtn")) {
                 viewinorders.setBackgroundColor(RED);
+               // viewinorders.setVisibility(View.VISIBLE);
             }
 
             if(myout.equals("whitebtn")) {
                 viewinorders.setBackgroundColor(getResources().getColor(android.R.color.white));
+               // viewinorders.setVisibility(View.INVISIBLE);
             }
 
 

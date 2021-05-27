@@ -6,6 +6,7 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
@@ -15,6 +16,7 @@ import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -33,7 +35,10 @@ public class Vieworders extends AppCompatActivity {
     String fname;
     String cunq;
     String responseBody;
-
+    String company;
+    String zone;
+    String orderid;
+    String sendorderid;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -47,7 +52,7 @@ public class Vieworders extends AppCompatActivity {
 
         back = (Button)findViewById(R.id.backbtn);
 
-
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
         back.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -108,6 +113,44 @@ public class Vieworders extends AppCompatActivity {
     }
 
 
+    public String acceptorder( String cunq , String theorder, String action ) {
+
+        String thisdevice = Settings.Secure.getString(this.getContentResolver(),
+                Settings.Secure.ANDROID_ID);
+
+        String url = "https://axcess.ai/barapp/driver_dowhatwithorder.php?&action=" + action + "&driver=" + cunq + "&orderid=" + theorder;
+        Log.i("action url",url);
+        OkHttpClient client = new OkHttpClient();
+        RequestBody requestBody = new MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
+
+                .addFormDataPart("what","this" )
+
+                .build();
+        Request request = new Request.Builder()
+                .url(url)//your webservice url
+                .post(requestBody)
+                .build();
+        try {
+            //String responseBody;
+            okhttp3.Response response = client.newCall(request).execute();
+            // Response response = client.newCall(request).execute();
+            if (response.isSuccessful()){
+                Log.i("SUCC",""+response.message());
+            }
+            String resp = response.message();
+            responseBody =  response.body().string();
+            Log.i("respBody:main",responseBody);
+            Log.i("MSG",resp);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return responseBody;
+    }
+
+
+
+
 
     private void createLayoutDynamically( String scantext) {
 
@@ -116,7 +159,16 @@ public class Vieworders extends AppCompatActivity {
 
 
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+
+        LinearLayout.LayoutParams Params1 = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,180);
+        Params1.setMargins(0, 0, 0, 0);
+
+        LinearLayout.LayoutParams acceptbtn = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,180);
+        acceptbtn.setMargins(0, 0, 0, 60);
+        LinearLayout.LayoutParams declinebtn = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,180);
+        declinebtn.setMargins(0, 0, 0, 60);
+
 
         //params.gravity = Gravity.TOP;
         layout.setGravity(Gravity.CENTER|Gravity.TOP);
@@ -130,15 +182,15 @@ public class Vieworders extends AppCompatActivity {
 
         int makebtn = dishout.length ;
         String tline;
-        String company;
-        String orderid;
+
+
         String locationid;
         String driver_accept;
         String is_pickedup;
 
 
         String printwforce = "<br>"
-                + makebtn + " Orders listed";
+                + makebtn + " listed";
 
         /*
         textView.setText(Html.fromHtml(printwforce));
@@ -150,13 +202,16 @@ public class Vieworders extends AppCompatActivity {
         TextView newtxt = new TextView(this);
         newtxt.setText(Html.fromHtml(printwforce));
         newtxt.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f);
+        newtxt.setPadding(0, 0, 0, 20 );
         newtxt.setTypeface(null, Typeface.BOLD);
         newtxt.setGravity(Gravity.CENTER);
         layout.addView(newtxt);
 
-
+           int idup;
         System.out.println(makebtn + "number buttons: " + Arrays.toString(dishout));
         for (int i = 0; i < makebtn; i++) {
+         idup = i + 20;
+
 
 
             tline = dishout[i] ;
@@ -164,49 +219,175 @@ public class Vieworders extends AppCompatActivity {
             orderid = sbtns[0];
             company = sbtns[1];
             locationid = sbtns[2];
-            driver_accept = sbtns[3];
-            is_pickedup = sbtns[3];
+            zone = sbtns[5];
 
            // System.out.println(makebtn + "action listed: " +  printwforce + "col:  " +  imgx );
 
+            TextView panel = new TextView(this);
+            panel.setText("From: "+ company + "\n\n To: Zone " + zone );
+            panel.setLayoutParams(Params1);
+            //panel.setWidth(200);
+            panel.setPadding(20, 5, 20, 5 );
+            panel.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18f);
+            panel.setTypeface(null, Typeface.BOLD);
+            panel.setGravity(Gravity.LEFT);
+            layout.addView(panel);
+            panel.setBackgroundColor(getResources().getColor(R.color.gray));
+
+
             Button btn = new Button(this);
-
-
-
-
-
             btn.setId(i);
             btn.setTag(orderid);
-            final int id_ = btn.getId();
-            btn.setText(" " + company + " " );
+            final int accept = btn.getId();
+            btn.setText(" Accept  " );
             params.width = 300;
-            btn.setLayoutParams(params);
+            btn.setTextSize(25);
+            btn.setLayoutParams(acceptbtn);
             btn.setPadding(5, 5, 5, 5 );
-            btn.setBackgroundColor(Color.rgb(249, 249, 249));
+            btn.setBackgroundColor(getResources().getColor(R.color.green));
+            btn.setTextColor(getResources().getColor(R.color.black));
             layout.addView(btn);
 
+
+            Button btn2 = new Button(this);
+            btn2.setId(idup);
+            btn2.setTag(orderid);
+            final int decline = btn2.getId();
+            btn2.setText(" Decline  " );
+            btn2.setTextSize(25);
+            btn2.setLayoutParams(declinebtn);
+            btn2.setPadding(5, 15, 5, 5 );
+            btn2.setBackgroundColor(Color.rgb(249, 249, 249));
+            layout.addView(btn2);
+
+
+
+
+            /*
             if(driver_accept.equals("1")) {
                 Log.i("action we got", "green");
                 btn.setBackgroundColor(Color.GREEN);
             }
 
-            btn = ((Button) findViewById(id_));
+             */
+
+            btn = ((Button) findViewById(accept));
+            btn2 = ((Button) findViewById(decline));
+
 
             btn.setOnClickListener(new View.OnClickListener() {
 
                 public void onClick(View view) {
 
+                    final String tagname = (String)view.getTag();
+                    Log.i("accept tag", tagname);
+
+
+                    AlertDialog.Builder builder = new AlertDialog.Builder(Vieworders.this);
+                    builder.setTitle("Confirm");
+
+                    builder.setMessage(Html.fromHtml("Confirm  for delivery for <br><br>" + company + " to zone "+ zone));
+
+                    builder.setPositiveButton("YES", new DialogInterface.OnClickListener() {
+
+                        public void onClick(DialogInterface dialog, int which) {
+
+                             sendorderid = tagname.trim();
+                            acceptorder( cunq ,  sendorderid,  "accept" );
+                            // Do nothing, but close the dialog
+                            dialog.dismiss();
+                            System.out.println("action numbers tag "+ tagname);
+
+
+                        }
+                    });
+
+                    builder.setNegativeButton("NO", new DialogInterface.OnClickListener() {
+
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+
+                            // Do nothing
+                            dialog.dismiss();
+                        }
+                    });
+
+                    AlertDialog alert = builder.create();
+                    alert.show();
+
+
+
+
+
+
+
+
 
                 }
             });
 
+
+
+            btn2.setOnClickListener(new View.OnClickListener() {
+
+                public void onClick(View view) {
+
+                    final String tagname = (String)view.getTag();
+                    Log.i("decline tag", tagname);
+
+
+                    AlertDialog.Builder builder = new AlertDialog.Builder(Vieworders.this);
+                    builder.setTitle("Confirm");
+
+                    builder.setMessage(Html.fromHtml("Confirm  for cancellation for <br><br>" + company + " to zone "+ zone));
+
+                    builder.setPositiveButton("YES", new DialogInterface.OnClickListener() {
+
+                        public void onClick(DialogInterface dialog, int which) {
+
+                            sendorderid = tagname.trim();
+                            acceptorder( cunq ,  sendorderid,  "decline" );
+                            // Do nothing, but close the dialog
+                            dialog.dismiss();
+                            System.out.println("action numbers tag "+ tagname);
+
+
+                        }
+                    });
+
+                    builder.setNegativeButton("NO", new DialogInterface.OnClickListener() {
+
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+
+                            // Do nothing
+                            dialog.dismiss();
+                        }
+                    });
+
+                    AlertDialog alert = builder.create();
+                    alert.show();
+
+
+
+
+                }
+            });
+
+
+
         }//end make buttons
 
 
-
-
-
-
     }
+
+
+
+
+
+
+
+
+
 
 }
