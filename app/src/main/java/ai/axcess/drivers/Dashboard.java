@@ -46,6 +46,8 @@ public class Dashboard extends AppCompatActivity {
     TextView locationstate;
     Button shift;
     Button viewinorders;
+    Button viewactionorders;
+
     Button llogout;
     String responseLocation;
     String fname;
@@ -78,6 +80,11 @@ public class Dashboard extends AppCompatActivity {
         llogout = (Button)findViewById(R.id.logout);
         viewinorders = (Button)findViewById(R.id.vieworders);
 
+
+        viewactionorders = (Button)findViewById(R.id.actionorders);
+        //viewactionorders.setBackgroundDrawable(getResources().getDrawable(R.drawable.btnani));
+
+
         driver = (TextView)findViewById(R.id.drivername);
         shiftstate = (TextView)findViewById(R.id.whatshift);
 
@@ -85,6 +92,18 @@ public class Dashboard extends AppCompatActivity {
 
         getShift(cunq);
         checklocationstatus();
+
+
+
+        viewactionorders.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                Intent intent = new Intent(Dashboard.this, Orderpanel.class);
+                startActivity(intent);
+
+            }
+        });
 
 
         llogout.setOnClickListener(new View.OnClickListener() {
@@ -301,12 +320,12 @@ public class Dashboard extends AppCompatActivity {
             String myout = intent.getStringExtra("send"); // -1 is going to be used as the default value
             if(myout.equals("redbtn")) {
                 viewinorders.setBackgroundColor(RED);
-               // viewinorders.setVisibility(View.VISIBLE);
+                viewinorders.setVisibility(View.VISIBLE);
             }
 
             if(myout.equals("whitebtn")) {
                 viewinorders.setBackgroundColor(getResources().getColor(android.R.color.white));
-               // viewinorders.setVisibility(View.INVISIBLE);
+               viewinorders.setVisibility(View.INVISIBLE);
             }
 
 

@@ -9,6 +9,7 @@ import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.text.Html;
@@ -39,10 +40,14 @@ public class Vieworders extends AppCompatActivity {
     String zone;
     String orderid;
     String sendorderid;
+    MediaPlayer player;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_vieworders);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
         SharedPreferences shared = getSharedPreferences("autoLogin", MODE_PRIVATE);
         SharedPreferences.Editor prefsEditor = shared.edit();
@@ -113,7 +118,21 @@ public class Vieworders extends AppCompatActivity {
     }
 
 
-    public String acceptorder( String cunq , String theorder, String action ) {
+    public String actionorder( String cunq , String theorder, String action ) {
+
+/*
+        Intent intent = new Intent(Vieworders.this, MyService.class);
+        stopService(intent);
+        startService(intent);
+
+ */
+        Bundle bundle = new Bundle();
+        bundle.putString("stophandler", "yes");
+
+        Intent i = new Intent(this, MyService.class);
+        this.stopService(i);
+        i.putExtras(bundle);
+        this.startService(i);
 
         String thisdevice = Settings.Secure.getString(this.getContentResolver(),
                 Settings.Secure.ANDROID_ID);
@@ -293,11 +312,13 @@ public class Vieworders extends AppCompatActivity {
                         public void onClick(DialogInterface dialog, int which) {
 
                              sendorderid = tagname.trim();
-                            acceptorder( cunq ,  sendorderid,  "accept" );
+                            actionorder( cunq ,  sendorderid,  "accept" );
                             // Do nothing, but close the dialog
                             dialog.dismiss();
                             System.out.println("action numbers tag "+ tagname);
 
+                            Intent intent = new Intent(Vieworders.this, Orderpanel.class);
+                            startActivity(intent);
 
                         }
                     });
@@ -339,17 +360,21 @@ public class Vieworders extends AppCompatActivity {
                     AlertDialog.Builder builder = new AlertDialog.Builder(Vieworders.this);
                     builder.setTitle("Confirm");
 
-                    builder.setMessage(Html.fromHtml("Confirm  for cancellation for <br><br>" + company + " to zone "+ zone));
+                    builder.setMessage(Html.fromHtml("Confirm  decline for <br><br>" + company + " to zone "+ zone));
 
                     builder.setPositiveButton("YES", new DialogInterface.OnClickListener() {
 
                         public void onClick(DialogInterface dialog, int which) {
 
                             sendorderid = tagname.trim();
-                            acceptorder( cunq ,  sendorderid,  "decline" );
+                            actionorder( cunq ,  sendorderid,  "decline" );
                             // Do nothing, but close the dialog
                             dialog.dismiss();
                             System.out.println("action numbers tag "+ tagname);
+
+                            Intent intent = new Intent(Vieworders.this, Dashboard.class);
+                            startActivity(intent);
+
 
 
                         }

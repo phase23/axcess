@@ -32,6 +32,7 @@
         android:width="100dp"
         android:gravity="center"
         android:text="Back"
+        android:visibility="invisible"
         android:textColor="#020202"
         app:backgroundTint="#FFFFFF" />
 

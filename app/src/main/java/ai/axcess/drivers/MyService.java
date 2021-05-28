@@ -42,18 +42,22 @@ public class MyService extends Service {
     String responseBody;
     String cunq;
     MediaPlayer player;
+    boolean isRunning = false;
     String responseLocation;
-    private final int TWENTY_SECONDS = 2000;
-
+    private final int TWENTY_SECONDS = 20000;
+    private final int TW0_SECONDS = 2000;
+    String stoprider;
     @Override
     public IBinder onBind(Intent intent) {
         return null;
     }
 
 
+
     @Override
     public void onCreate() {
        // Toast.makeText(this, "Service created!", Toast.LENGTH_LONG).show();
+
 
 
         SharedPreferences shared = getSharedPreferences("autoLogin", MODE_PRIVATE);
@@ -96,6 +100,18 @@ public class MyService extends Service {
         //Toast.makeText(this, "Service started by user.", Toast.LENGTH_LONG).show();
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
+     /*
+        // Bundle bundle = intent.getExtras();
+
+        //if (bundle!=null) {
+        //   stoprider = bundle.getString("stophandler");
+           // handler2.removeCallbacksAndMessages(null);
+           // Toast.makeText(this, "Handler must." + stoprider, Toast.LENGTH_LONG).show();
+        //}
+
+      */
+
+
 
 
         handler = new Handler();
@@ -127,6 +143,7 @@ public class MyService extends Service {
             //Toast.makeText(mContext,msg,Toast.LENGTH_LONG).show();
             Log.d("Changed", " Cordin :" + msg);
             sendlocation(latitude , longitude);
+            sendnewlocationtomaps( latitude, longitude);
             Toast.makeText(getApplicationContext(), "Location changed", Toast.LENGTH_LONG).show();
         }
 
@@ -228,6 +245,20 @@ public class MyService extends Service {
     }
 
 
+    private void sendnewlocationtomaps(Double lat, Double lon){
+        Intent intent = new Intent("my-location");
+        // Adding some data
+        String mylatconvert = String.valueOf(lat);
+        String mylongconvert = String.valueOf(lon);
+
+        intent.putExtra("mylat", mylatconvert);
+        intent.putExtra("mylon", mylongconvert);
+        intent.putExtra("sometext", "befirst");
+        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+
+    }
+
+
     private void sendalerttoActivity(String msg)
     {
         Intent intent = new Intent("my-message");
@@ -280,14 +311,29 @@ public class MyService extends Service {
                 if(player != null){
                     player.stop();
                 }
+                if(isRunning) {
+                    handler2.removeCallbacksAndMessages(null);
+                    isRunning = false;
+                }
 
                 sendalerttoActivity("whitebtn");
             }else {
 
                 sendalerttoActivity("redbtn");
-                player = MediaPlayer.create(this, R.raw.beep08b);
-                player.setVolume(20, 20);
-                player.start();
+                handler2 = new Handler();
+
+                handler2.postDelayed(new Runnable() {
+                    public void run() {
+                        isRunning = true;
+                        startplayer();
+
+                        handler2.postDelayed(this, TW0_SECONDS);
+                    }
+                }, TW0_SECONDS);
+
+
+
+
             }
 
 
@@ -305,6 +351,13 @@ public class MyService extends Service {
     }//emd
 
 
+
+    public void startplayer(){
+
+        player = MediaPlayer.create(this, R.raw.beep08b);
+        player.setVolume(20, 20);
+        player.start();
+    }
 
     private void startMyOwnForeground(){
         String NOTIFICATION_CHANNEL_ID = "com.example.simpleapp";
