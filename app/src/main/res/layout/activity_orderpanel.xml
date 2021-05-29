@@ -29,7 +29,7 @@
 
                 android:layout_marginStart="1dp"
                 android:layout_marginLeft="1dp"
-                android:visibility="invisible"
+                android:visibility="visible"
                 android:width="100dp"
                 android:gravity="center"
                 android:text="Back"

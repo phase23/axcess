@@ -15,6 +15,7 @@ import android.text.Html;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -39,7 +40,8 @@ public class Orderpanel extends AppCompatActivity {
     String zone;
     String orderid;
     String sendorderid;
-
+    String is_pickedup;
+    String driver_accept;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,10 +62,14 @@ public class Orderpanel extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 back.setBackgroundColor(getResources().getColor(R.color.gray));
+               /*
                 Intent intent = new Intent(Orderpanel.this, Dashboard.class);
-
                 startActivity(intent);
 
+
+                */
+                //this.dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BACK));
+                finish();
             }
         });
 
@@ -71,7 +77,21 @@ public class Orderpanel extends AppCompatActivity {
 
 
         String returnorders = getacceptedorders( cunq );
-        createLayoutDynamically(returnorders);
+
+        try {
+
+            String[] dishout = returnorders.split(Pattern.quote("*"));
+            System.out.println("number tickets: " + Arrays.toString(dishout));
+
+            createLayoutDynamically(returnorders);
+
+
+        } catch(ArrayIndexOutOfBoundsException e) {
+
+
+        }
+
+
     }
 
     public String getacceptedorders( String cunq ) {
@@ -110,6 +130,53 @@ public class Orderpanel extends AppCompatActivity {
     }
 
 
+
+    public String actionorder( String cunq , String theorder, String action ) {
+
+
+        Bundle bundle = new Bundle();
+        bundle.putString("stophandler", "yes");
+
+        Intent i = new Intent(this, MyService.class);
+        this.stopService(i);
+        i.putExtras(bundle);
+        this.startService(i);
+
+        String thisdevice = Settings.Secure.getString(this.getContentResolver(),
+                Settings.Secure.ANDROID_ID);
+
+        String url = "https://axcess.ai/barapp/driver_dowhatwithorder.php?&action=" + action + "&driver=" + cunq + "&orderid=" + theorder;
+        Log.i("action url",url);
+        OkHttpClient client = new OkHttpClient();
+        RequestBody requestBody = new MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
+
+                .addFormDataPart("what","this" )
+
+                .build();
+        Request request = new Request.Builder()
+                .url(url)//your webservice url
+                .post(requestBody)
+                .build();
+        try {
+            //String responseBody;
+            okhttp3.Response response = client.newCall(request).execute();
+            // Response response = client.newCall(request).execute();
+            if (response.isSuccessful()){
+                Log.i("SUCC",""+response.message());
+            }
+            String resp = response.message();
+            responseBody =  response.body().string();
+            Log.i("respBody:main",responseBody);
+            Log.i("MSG",resp);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return responseBody;
+    }
+
+
+
     private void createLayoutDynamically( String scantext) {
 
         LinearLayout layout = (LinearLayout) findViewById(R.id.scnf);
@@ -143,12 +210,12 @@ public class Orderpanel extends AppCompatActivity {
 
 
         String locationid;
-        String driver_accept;
-        String is_pickedup;
+
+
 
 
         String printwforce = "<br>"
-                + makebtn + " listed";
+                + makebtn + " ";
 
         /*
         textView.setText(Html.fromHtml(printwforce));
@@ -166,10 +233,12 @@ public class Orderpanel extends AppCompatActivity {
         layout.addView(newtxt);
 
         int idup;
+        int idup2;
+
         System.out.println(makebtn + "number buttons: " + Arrays.toString(dishout));
         for (int i = 0; i < makebtn; i++) {
             idup = i + 20;
-
+            idup2 = idup + 20;
 
 
             tline = dishout[i] ;
@@ -177,7 +246,11 @@ public class Orderpanel extends AppCompatActivity {
             orderid = sbtns[0];
             company = sbtns[1];
             locationid = sbtns[2];
+            driver_accept = sbtns[3];
+            is_pickedup = sbtns[4];
             zone = sbtns[5];
+
+
 
             // System.out.println(makebtn + "action listed: " +  printwforce + "col:  " +  imgx );
 
@@ -193,18 +266,43 @@ public class Orderpanel extends AppCompatActivity {
             panel.setBackgroundColor(getResources().getColor(R.color.gray));
 
 
-            Button btn = new Button(this);
-            btn.setId(i);
-            btn.setTag(orderid);
-            final int accept = btn.getId();
-            btn.setText(" Route to Pickup  " );
-            params.width = 300;
-            btn.setTextSize(25);
-            btn.setLayoutParams(pickupbtn);
-            btn.setPadding(5, 5, 5, 5 );
-            btn.setBackgroundColor(getResources().getColor(R.color.green));
-            btn.setTextColor(getResources().getColor(R.color.black));
-            layout.addView(btn);
+            if(is_pickedup.equals("0")) {
+                Button btn = new Button(this);
+                btn.setId(i);
+                btn.setTag(orderid);
+                final int accept = btn.getId();
+                btn.setText(" Route to Pickup  ");
+                params.width = 300;
+                btn.setTextSize(25);
+                btn.setLayoutParams(pickupbtn);
+                btn.setPadding(5, 5, 5, 5);
+                btn.setBackgroundColor(getResources().getColor(R.color.green));
+                btn.setTextColor(getResources().getColor(R.color.black));
+                layout.addView(btn);
+
+                btn = ((Button) findViewById(accept));
+
+                btn.setOnClickListener(new View.OnClickListener() {
+
+                    public void onClick(View view) {
+
+                        final String tagname = (String)view.getTag();
+                        Log.i("accept tag", tagname);
+                        sendorderid = tagname.trim();
+
+
+                        Intent activity = new Intent(getApplicationContext(), Pickup.class);
+                        activity.putExtra("orderid",sendorderid);
+                        activity.putExtra("doaction","pickup");
+                        startActivity(activity);
+
+
+                    }
+                });
+            }
+
+
+
 
 
             Button btn2 = new Button(this);
@@ -216,10 +314,111 @@ public class Orderpanel extends AppCompatActivity {
             btn2.setLayoutParams(dropoffbtn);
             btn2.setPadding(5, 15, 5, 5 );
             btn2.setBackgroundColor(Color.rgb(249, 249, 249));
+
+            if(driver_accept.equals("1") && is_pickedup.equals("1")){
+                btn2.setBackgroundColor(getResources().getColor(R.color.green));
+                btn2.setTextColor(getResources().getColor(R.color.black));
+
+            }
+
             layout.addView(btn2);
 
 
+            btn2.setOnClickListener(new View.OnClickListener() {
 
+                public void onClick(View view) {
+
+                    final String tagname = (String)view.getTag();
+                    Log.i("drop off tag", tagname);
+
+                    sendorderid = tagname.trim();
+
+
+                    Intent activity = new Intent(getApplicationContext(), Pickup.class);
+                    activity.putExtra("orderid",sendorderid);
+                    activity.putExtra("doaction","dropoff");
+                    startActivity(activity);
+
+                }
+            });
+
+
+
+            if(is_pickedup.equals("1")) {
+                Button btn3 = new Button(this);
+                btn3.setId(idup2);
+                btn3.setTag(orderid);
+                final int dropoff = btn3.getId();
+                btn3.setText(" Order Completed ");
+                btn3.setTextSize(25);
+                btn3.setLayoutParams(dropoffbtn);
+                btn3.setPadding(5, 15, 5, 5);
+                btn3.setBackgroundColor(Color.rgb(249, 249, 249));
+                layout.addView(btn3);
+
+                btn3 = ((Button) findViewById(dropoff));
+
+                btn3.setOnClickListener(new View.OnClickListener() {
+
+                    public void onClick(View view) {
+
+                        final String tagname = (String)view.getTag();
+                        Log.i("dropp off tag", tagname);
+
+
+                        AlertDialog.Builder builder = new AlertDialog.Builder(Orderpanel.this);
+                        builder.setTitle("Confirm");
+
+                        builder.setMessage(Html.fromHtml("Confirm  for completion for <br><br>" + company + " to zone "+ zone));
+
+                        builder.setPositiveButton("YES", new DialogInterface.OnClickListener() {
+
+                            public void onClick(DialogInterface dialog, int which) {
+
+                                sendorderid = tagname.trim();
+                                actionorder( cunq ,  sendorderid,  "delivered" );
+                                // Do nothing, but close the dialog
+                                dialog.dismiss();
+                                System.out.println("action numbers tag "+ tagname);
+
+                                Intent intent = new Intent(Orderpanel.this, Dashboard.class);
+                                startActivity(intent);
+
+                            }
+                        });
+
+                        builder.setNegativeButton("NO", new DialogInterface.OnClickListener() {
+
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+
+                                // Do nothing
+                                dialog.dismiss();
+                            }
+                        });
+
+                        AlertDialog alert = builder.create();
+                        alert.show();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    }
+                });
+
+            }
 
             /*
             if(driver_accept.equals("1")) {
@@ -229,38 +428,19 @@ public class Orderpanel extends AppCompatActivity {
 
              */
 
-            btn = ((Button) findViewById(accept));
+
             btn2 = ((Button) findViewById(decline));
 
 
-            btn.setOnClickListener(new View.OnClickListener() {
-
-                public void onClick(View view) {
-
-                    final String tagname = (String)view.getTag();
-                    Log.i("accept tag", tagname);
-                    sendorderid = tagname.trim();
-
-
-                    Intent activity = new Intent(getApplicationContext(), Pickup.class);
-                    activity.putExtra("orderid",sendorderid);
-                    startActivity(activity);
-
-
-                }
-            });
 
 
 
-            btn2.setOnClickListener(new View.OnClickListener() {
 
-                public void onClick(View view) {
 
-                    final String tagname = (String)view.getTag();
-                    Log.i("decline tag", tagname);
 
-                }
-            });
+
+
+
 
 
 

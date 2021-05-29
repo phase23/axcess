@@ -9,4 +9,5 @@
     <color name="white">#FFFFFFFF</color>
     <color name="gray">#EFEDEB</color>
     <color name="green">#86f465</color>
+    <color name="colorRouteLine">#86f465</color>
 </resources>
