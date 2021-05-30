@@ -5,6 +5,7 @@ import androidx.core.content.ContextCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -24,6 +25,7 @@ import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -67,6 +69,10 @@ public class Dashboard extends AppCompatActivity {
         SharedPreferences.Editor prefsEditor = shared.edit();
         int j = shared.getInt("key", 0);
 
+
+
+
+
         registerReceiver(gpsReceiver, new IntentFilter(LocationManager.PROVIDERS_CHANGED_ACTION));
         if(j > 0) {
             fname = shared.getString("sendfname", "");
@@ -76,12 +82,21 @@ public class Dashboard extends AppCompatActivity {
               cunq = getIntent().getExtras().getString("driver");
         }
 
+
+
+
+        String getunsettledorders = getordercount( cunq );
+
+
         shift = (Button)findViewById(R.id.Startshift);
+
         llogout = (Button)findViewById(R.id.logout);
         viewinorders = (Button)findViewById(R.id.vieworders);
 
 
         viewactionorders = (Button)findViewById(R.id.actionorders);
+        getunsettledorders = getunsettledorders.trim();
+        viewactionorders.setText("View Orders ("+ getunsettledorders + ")" );
         //viewactionorders.setBackgroundDrawable(getResources().getDrawable(R.drawable.btnani));
 
 
@@ -110,6 +125,12 @@ public class Dashboard extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 shared.edit().clear().commit();
+
+                Shiftactionset(cunq,1);
+
+                //Intent i = new Intent(this, MyService.class);
+                stopService(new Intent(Dashboard.this, MyService.class));
+
                 Intent intent = new Intent(Dashboard.this, MainActivity.class);
 
                 startActivity(intent);
@@ -170,7 +191,7 @@ public class Dashboard extends AppCompatActivity {
         setState(myNum);
 
         if(myNum == 0) {
-
+            viewactionorders.setEnabled(false);
             shiftstate.setText("Off Shift");
 
             shift.setBackgroundColor(Color.RED);
@@ -194,11 +215,18 @@ public class Dashboard extends AppCompatActivity {
         String thisdevice = Settings.Secure.getString(this.getContentResolver(),
                 Settings.Secure.ANDROID_ID);
 
-        if(State == 0) {
+        if(State == 0) { //enable
+            viewactionorders.setEnabled(true);
+
+            Intent i = new Intent(this, MyService.class);
+            this.startService(i);
+
             newstate = 1;
         }
 
-        if(State == 1) {
+        if(State == 1) {//disable
+            viewactionorders.setEnabled(false);
+            stopService(new Intent(Dashboard.this, MyService.class));
             newstate = 0;
         }
 
@@ -254,6 +282,43 @@ public class Dashboard extends AppCompatActivity {
     }//end function
 
 
+
+
+
+    public String getordercount( String cunq ) {
+
+        String thisdevice = Settings.Secure.getString(this.getContentResolver(),
+                Settings.Secure.ANDROID_ID);
+
+        String url = "https://axcess.ai/barapp/driver_countorders.php?driverid="+cunq;
+        Log.i("action url",url);
+        OkHttpClient client = new OkHttpClient();
+        RequestBody requestBody = new MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
+
+                .addFormDataPart("what","this" )
+
+                .build();
+        Request request = new Request.Builder()
+                .url(url)//your webservice url
+                .post(requestBody)
+                .build();
+        try {
+            //String responseBody;
+            okhttp3.Response response = client.newCall(request).execute();
+            // Response response = client.newCall(request).execute();
+            if (response.isSuccessful()){
+                Log.i("SUCC",""+response.message());
+            }
+            String resp = response.message();
+            responseLocation =  response.body().string();
+            Log.i("respBody:main",responseLocation);
+            Log.i("MSG",resp);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return responseLocation;
+    }
 
 
 

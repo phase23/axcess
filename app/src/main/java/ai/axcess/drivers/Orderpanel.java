@@ -3,12 +3,15 @@ package ai.axcess.drivers;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.graphics.Color;
+import android.graphics.Rect;
 import android.graphics.Typeface;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.text.Html;
@@ -18,8 +21,11 @@ import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.PopupWindow;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import java.io.IOException;
@@ -33,6 +39,7 @@ import okhttp3.RequestBody;
 
 public class Orderpanel extends AppCompatActivity {
     Button back;
+
     String fname;
     String cunq;
     String responseBody;
@@ -42,6 +49,7 @@ public class Orderpanel extends AppCompatActivity {
     String sendorderid;
     String is_pickedup;
     String driver_accept;
+    ProgressBar progressBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,6 +65,7 @@ public class Orderpanel extends AppCompatActivity {
         back = (Button)findViewById(R.id.backbtn);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
+        progressBar = (ProgressBar)findViewById(R.id.progress_loader);
 
         back.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -88,6 +97,16 @@ public class Orderpanel extends AppCompatActivity {
 
         } catch(ArrayIndexOutOfBoundsException e) {
 
+            LinearLayout layout = (LinearLayout) findViewById(R.id.scnf);
+            layout.setOrientation(LinearLayout.VERTICAL);
+
+            TextView newtxt = new TextView(this);
+            newtxt.setText(Html.fromHtml("No orders"));
+            newtxt.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f);
+            newtxt.setPadding(0, 0, 0, 20 );
+            newtxt.setTypeface(null, Typeface.BOLD);
+            newtxt.setGravity(Gravity.CENTER);
+            layout.addView(newtxt);
 
         }
 
@@ -177,14 +196,28 @@ public class Orderpanel extends AppCompatActivity {
 
 
 
+
     private void createLayoutDynamically( String scantext) {
 
         LinearLayout layout = (LinearLayout) findViewById(R.id.scnf);
         layout.setOrientation(LinearLayout.VERTICAL);
 
 
+
+
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+
+
+        TextView newtxt = new TextView(this);
+        newtxt.setText(Html.fromHtml(" "));
+        newtxt.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f);
+        newtxt.setPadding(0, 0, 0, 40 );
+        newtxt.setTypeface(null, Typeface.BOLD);
+        newtxt.setGravity(Gravity.CENTER);
+        layout.addView(newtxt);
+
+
 
         LinearLayout.LayoutParams Params1 = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,180);
         Params1.setMargins(0, 0, 0, 0);
@@ -212,25 +245,18 @@ public class Orderpanel extends AppCompatActivity {
         String locationid;
 
 
-
+/*
 
         String printwforce = "<br>"
                 + makebtn + " ";
 
-        /*
+
         textView.setText(Html.fromHtml(printwforce));
         textView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18f);
         textView.setTypeface(null, Typeface.BOLD);
         textView.setGravity(Gravity.CENTER);
         */
 
-        TextView newtxt = new TextView(this);
-        newtxt.setText(Html.fromHtml(printwforce));
-        newtxt.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f);
-        newtxt.setPadding(0, 0, 0, 20 );
-        newtxt.setTypeface(null, Typeface.BOLD);
-        newtxt.setGravity(Gravity.CENTER);
-        layout.addView(newtxt);
 
         int idup;
         int idup2;
@@ -270,7 +296,7 @@ public class Orderpanel extends AppCompatActivity {
                 Button btn = new Button(this);
                 btn.setId(i);
                 btn.setTag(orderid);
-                final int accept = btn.getId();
+                final int routetopickup = btn.getId();
                 btn.setText(" Route to Pickup  ");
                 params.width = 300;
                 btn.setTextSize(25);
@@ -280,17 +306,17 @@ public class Orderpanel extends AppCompatActivity {
                 btn.setTextColor(getResources().getColor(R.color.black));
                 layout.addView(btn);
 
-                btn = ((Button) findViewById(accept));
+                btn = ((Button) findViewById(routetopickup));
 
                 btn.setOnClickListener(new View.OnClickListener() {
 
                     public void onClick(View view) {
 
                         final String tagname = (String)view.getTag();
-                        Log.i("accept tag", tagname);
+                        Log.i("pickup tag", tagname);
                         sendorderid = tagname.trim();
 
-
+                        progressBar.setVisibility(View.VISIBLE);
                         Intent activity = new Intent(getApplicationContext(), Pickup.class);
                         activity.putExtra("orderid",sendorderid);
                         activity.putExtra("doaction","pickup");
@@ -308,7 +334,7 @@ public class Orderpanel extends AppCompatActivity {
             Button btn2 = new Button(this);
             btn2.setId(idup);
             btn2.setTag(orderid);
-            final int decline = btn2.getId();
+            final int routetodrop = btn2.getId();
             btn2.setText(" Route to Drop off " );
             btn2.setTextSize(25);
             btn2.setLayoutParams(dropoffbtn);
@@ -328,12 +354,13 @@ public class Orderpanel extends AppCompatActivity {
 
                 public void onClick(View view) {
 
+
                     final String tagname = (String)view.getTag();
                     Log.i("drop off tag", tagname);
 
                     sendorderid = tagname.trim();
 
-
+                    progressBar.setVisibility(View.VISIBLE);
                     Intent activity = new Intent(getApplicationContext(), Pickup.class);
                     activity.putExtra("orderid",sendorderid);
                     activity.putExtra("doaction","dropoff");
@@ -347,9 +374,9 @@ public class Orderpanel extends AppCompatActivity {
             if(is_pickedup.equals("1")) {
                 Button btn3 = new Button(this);
                 btn3.setId(idup2);
-                btn3.setTag(orderid);
+                btn3.setTag(orderid + "~" + company + "~" + zone);
                 final int dropoff = btn3.getId();
-                btn3.setText(" Order Completed ");
+                btn3.setText(" Order Completed " );
                 btn3.setTextSize(25);
                 btn3.setLayoutParams(dropoffbtn);
                 btn3.setPadding(5, 15, 5, 5);
@@ -365,17 +392,24 @@ public class Orderpanel extends AppCompatActivity {
                         final String tagname = (String)view.getTag();
                         Log.i("dropp off tag", tagname);
 
+                        String splittag = tagname.trim();
+                        String[] minitags = splittag.split("~");
+                        String outcompany = minitags[1];
+                        String outzone = minitags[2];
 
                         AlertDialog.Builder builder = new AlertDialog.Builder(Orderpanel.this);
                         builder.setTitle("Confirm");
 
-                        builder.setMessage(Html.fromHtml("Confirm  for completion for <br><br>" + company + " to zone "+ zone));
+                        builder.setMessage(Html.fromHtml(    " Confirm  for completion for <br><br>" + outcompany + " to zone "+ outzone));
 
                         builder.setPositiveButton("YES", new DialogInterface.OnClickListener() {
 
                             public void onClick(DialogInterface dialog, int which) {
 
-                                sendorderid = tagname.trim();
+                                String disrupttag = tagname.trim();
+                                String[] desrupted = disrupttag.split("~");
+                                 sendorderid = minitags[0];
+
                                 actionorder( cunq ,  sendorderid,  "delivered" );
                                 // Do nothing, but close the dialog
                                 dialog.dismiss();
@@ -404,17 +438,6 @@ public class Orderpanel extends AppCompatActivity {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
                     }
                 });
 
@@ -429,7 +452,7 @@ public class Orderpanel extends AppCompatActivity {
              */
 
 
-            btn2 = ((Button) findViewById(decline));
+            btn2 = ((Button) findViewById(routetodrop));
 
 
 

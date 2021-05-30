@@ -254,7 +254,7 @@ public class Vieworders extends AppCompatActivity {
             panel.setBackgroundColor(getResources().getColor(R.color.gray));
 
 
-            Button btn = new Button(this);
+             Button btn = new Button(this);
             btn.setId(i);
             btn.setTag(orderid);
             final int accept = btn.getId();

@@ -1,5 +1,6 @@
 package ai.axcess.drivers;
 
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
@@ -11,7 +12,10 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -26,11 +30,16 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.CameraPosition;
+import com.google.android.gms.maps.model.Dot;
+import com.google.android.gms.maps.model.Gap;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.PatternItem;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
@@ -44,12 +53,14 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
 
 import ai.axcess.drivers.databinding.ActivityPickupBinding;
 import ai.axcess.drivers.util.DirectionPointListener;
 import ai.axcess.drivers.util.GetPathFromLocation;
+import ai.axcess.drivers.util.RoutePoints;
 import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -59,7 +70,7 @@ import android.content.DialogInterface;
 
 import static android.graphics.Color.RED;
 
-public class Pickup extends FragmentActivity implements OnMapReadyCallback {
+public class Pickup extends FragmentActivity implements OnMapReadyCallback,GoogleMap.OnPolylineClickListener {
 
     private GoogleMap mMap;
     private ActivityPickupBinding binding;
@@ -120,6 +131,10 @@ public class Pickup extends FragmentActivity implements OnMapReadyCallback {
         mRoute = mMap.addPolyline(new PolylineOptions());
 
 
+        boolean walkLine = true;
+        //draw alternative routes if possible
+        boolean alternatives = true;
+
         String theroute = getroute(cunq, thisorderid, whataction);
 
             theroute = theroute.trim();
@@ -176,20 +191,68 @@ public class Pickup extends FragmentActivity implements OnMapReadyCallback {
         LatLng destination  = new LatLng(myddoublelat, myddoublelon);
 
         String API_KEY = getResources().getString(R.string.google_maps_key);
-        new GetPathFromLocation(source, destination, API_KEY, new DirectionPointListener() {
+        new GetPathFromLocation(source, destination, alternatives, walkLine, API_KEY, new DirectionPointListener() {
             @Override
-            public void onPath(PolylineOptions polyLine) {
-                //when the path is retrieved, plot it on the map
-                mMap.addPolyline(polyLine);
+            public void onPath(List<RoutePoints> routes) {
+
+                //a dotted pattern for the walk line
+                final List<PatternItem> pattern = Arrays.asList(new Dot(), new Gap(20));
+                // color for different routes
+                final int routeColors[] = {Color.BLUE, Color.GREEN, Color.RED, Color.YELLOW};
+
+                RoutePoints route = null;
+                int color = routeColors[0];
+                //iterate over all routes
+                for (int i = 0; i < routes.size(); i++) {
+                    route = routes.get(i);
+                    color = routeColors[i];
+                    //draw the driving route
+                    PolylineOptions options = new PolylineOptions()
+                            .addAll(route.drivingRoute)
+                            .width(10)
+                            .color(color)
+                            .clickable(true);
+                    //add the route to the map
+                    Polyline drivingRoute = mMap.addPolyline(options);
+                    //add tag to the route to be accessible
+                    drivingRoute.setTag("route_" + i);
+                }
+                //here we draw the dotted walk line once
+                if (route != null) {
+                    //the dotted line between source->near driving route
+                    PolylineOptions destWalk = new PolylineOptions()
+                            .addAll(route.destWalk)
+                            .width(10)
+                            .color(color)
+                            .pattern(pattern);
+                    //the dotted line between dest->last driving route
+                    PolylineOptions srcWalk = new PolylineOptions()
+                            .addAll(route.sourceWalk)
+                            .width(10)
+                            .color(color)
+                            .pattern(pattern);
+                    //add both routes to the map
+                    mMap.addPolyline(destWalk);
+                    mMap.addPolyline(srcWalk);
+                }
+
             }
         }).execute();
 
+        mMap.setOnPolylineClickListener(this);
 
+        //mMap.setOnPolylineClickListener(this);
         // Add a marker in Sydney and move the camera
         LatLng anguilla = new LatLng(mydoublelat, mydoublelon);
         googleMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
         mMap.setTrafficEnabled(true);
         drivermaker = mMap.addMarker(new MarkerOptions().position(anguilla).title("My Location"));
+/*
+        drivermaker = mMap.addMarker(new MarkerOptions().position(anguilla).title("My Location")
+                .icon(BitmapFromVector(getApplicationContext(), R.drawable.ic_baseline_directions_car_24)));
+
+
+ */
         //mMap.addMarker(new MarkerOptions().position(source).title("SOURCE"));
         //mMap.addMarker(new MarkerOptions().position(destination).title("DEST"));
 
@@ -199,6 +262,26 @@ public class Pickup extends FragmentActivity implements OnMapReadyCallback {
     }
 
 
+
+    @Override
+    public void onPolylineClick(Polyline route) {
+        //set the clicked route at the top
+        route.setZIndex(route.getZIndex() + 1);
+        //do something with the selected route..
+        Toast.makeText(this, "" + route.getTag(), Toast.LENGTH_SHORT).show();
+    }
+
+
+
+    private BitmapDescriptor BitmapFromVector(Context context, int vectorResId) {
+
+        Drawable vectorDrawable = ContextCompat.getDrawable(context, vectorResId);
+        vectorDrawable.setBounds(0, 0, vectorDrawable.getIntrinsicWidth(), vectorDrawable.getIntrinsicHeight());
+        Bitmap bitmap = Bitmap.createBitmap(vectorDrawable.getIntrinsicWidth(), vectorDrawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bitmap);
+        vectorDrawable.draw(canvas);
+        return BitmapDescriptorFactory.fromBitmap(bitmap);
+    }
 
     @Override
     public void onResume() {
@@ -216,6 +299,7 @@ public class Pickup extends FragmentActivity implements OnMapReadyCallback {
             // Extract data included in the Intent
             String mylat = intent.getStringExtra("mylat"); // -1 is going to be used as the default value
             String mylon = intent.getStringExtra("mylon");
+            String mybearing = intent.getStringExtra("mybearing");
 
             System.out.println("degres  lat :" + mylat + " long : " +  mylon);
             Double mydoublelat = 0.0;
@@ -232,15 +316,33 @@ public class Pickup extends FragmentActivity implements OnMapReadyCallback {
                 System.out.println("Could not parse " + nfe);
             }
 
+            float thebearing = 0;
+            try {
+                thebearing = Float.parseFloat(mybearing);
+            } catch(NumberFormatException nfe) {
+                System.out.println("Could not parse " + nfe);
+            }
+
+
+            CameraPosition position = CameraPosition.builder()
+                    .bearing(thebearing)
+                    .target(new LatLng(mydoublelat, mydoublelon))
+                    .zoom(mMap.getCameraPosition().zoom)
+                    .tilt(mMap.getCameraPosition().tilt)
+                    .build();
+
             //mMap.clear();
             drivermaker.remove();
             MarkerOptions mp = new MarkerOptions();
             mp.position(new LatLng(mydoublelat, mydoublelon));
             mp.title("my position");
             drivermaker = mMap.addMarker(mp);
+            mMap.animateCamera(CameraUpdateFactory.newCameraPosition(position));
+
+            /*
             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
                     new LatLng(mydoublelat, mydoublelon), 16));
-
+                    */
 
         }
     };
@@ -251,6 +353,7 @@ public class Pickup extends FragmentActivity implements OnMapReadyCallback {
         LocalBroadcastManager.getInstance(this).unregisterReceiver(messageReceiver);
         super.onPause();
     }
+
 
 
 

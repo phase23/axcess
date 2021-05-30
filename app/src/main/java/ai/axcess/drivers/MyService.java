@@ -10,6 +10,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.media.MediaPlayer;
@@ -44,6 +45,7 @@ public class MyService extends Service {
     MediaPlayer player;
     boolean isRunning = false;
     String responseLocation;
+
     private final int TWENTY_SECONDS = 20000;
     private final int TW0_SECONDS = 2000;
     String stoprider;
@@ -139,12 +141,13 @@ public class MyService extends Service {
         public void onLocationChanged(android.location.Location location) {
             double latitude=location.getLatitude();
             double longitude=location.getLongitude();
+            Float bearing = location.getBearing();
             String msg="New Latitude: "+latitude + "New Longitude: "+longitude;
             //Toast.makeText(mContext,msg,Toast.LENGTH_LONG).show();
             Log.d("Changed", " Cordin :" + msg);
             sendlocation(latitude , longitude);
-            sendnewlocationtomaps( latitude, longitude);
-            Toast.makeText(getApplicationContext(), "Location changed", Toast.LENGTH_LONG).show();
+            sendnewlocationtomaps( latitude, longitude, bearing);
+            //Toast.makeText(getApplicationContext(), "Location changed", Toast.LENGTH_LONG).show();
         }
 
 
@@ -245,15 +248,16 @@ public class MyService extends Service {
     }
 
 
-    private void sendnewlocationtomaps(Double lat, Double lon){
+    private void sendnewlocationtomaps(Double lat, Double lon, Float Bearing){
         Intent intent = new Intent("my-location");
         // Adding some data
         String mylatconvert = String.valueOf(lat);
         String mylongconvert = String.valueOf(lon);
+        String mybearingconvert = String.valueOf(Bearing);
 
         intent.putExtra("mylat", mylatconvert);
         intent.putExtra("mylon", mylongconvert);
-        intent.putExtra("sometext", "befirst");
+        intent.putExtra("mybearing", mybearingconvert);
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
 
     }

@@ -7,6 +7,7 @@ import androidx.core.content.ContextCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import android.Manifest;
+import android.app.ActionBar;
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -24,11 +25,13 @@ import android.os.Bundle;
 import android.os.StrictMode;
 import android.provider.Settings;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import java.io.IOException;
@@ -45,6 +48,7 @@ public class MainActivity extends AppCompatActivity {
     String cunq;
     String fname;
     LocationManager locationManager;
+    ProgressBar progressBar;
 
     SharedPreferences sharedpreferences;
     int autoSave;
@@ -61,6 +65,8 @@ public class MainActivity extends AppCompatActivity {
 
 
 
+
+
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) ==
                 PackageManager.PERMISSION_GRANTED &&
                 ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) ==
@@ -69,8 +75,6 @@ public class MainActivity extends AppCompatActivity {
             //Do your work here
             //Perform operations here only which requires permission
 
-            Intent i = new Intent(this, MyService.class);
-            this.startService(i);
 
         } else {
 
@@ -87,7 +91,7 @@ public class MainActivity extends AppCompatActivity {
 
         llogin = (Button)findViewById(R.id.llogin);
         pin = (EditText)findViewById(R.id.driverno);
-
+        progressBar = (ProgressBar)findViewById(R.id.progress_loader);
 
 
 
@@ -133,6 +137,7 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onClick(View v) {
                     String thispin = pin.getText().toString();
+                    progressBar.setVisibility(View.VISIBLE);
 
                     if (thispin.matches("")) {
                         Toast.makeText(getApplicationContext(), "Enter your password", Toast.LENGTH_SHORT).show();
