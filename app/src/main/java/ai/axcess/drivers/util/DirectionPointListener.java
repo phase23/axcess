@@ -4,6 +4,8 @@ import com.google.android.gms.maps.model.PolylineOptions;
 
 import java.util.List;
 
+import java.util.List;
+
 public interface DirectionPointListener {
-    void onPath(List<RoutePoints> routes);
+    void onPath(List<Routes> routes);
 }

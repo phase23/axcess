@@ -46,6 +46,7 @@ public class Dashboard extends AppCompatActivity {
     TextView driver;
     TextView shiftstate;
     TextView locationstate;
+    TextView offview;
     Button shift;
     Button viewinorders;
     Button viewactionorders;
@@ -102,7 +103,7 @@ public class Dashboard extends AppCompatActivity {
 
         driver = (TextView)findViewById(R.id.drivername);
         shiftstate = (TextView)findViewById(R.id.whatshift);
-
+        offview = (TextView)findViewById(R.id.offlinemsg);
         driver.setText(fname);
 
         getShift(cunq);
@@ -143,6 +144,8 @@ public class Dashboard extends AppCompatActivity {
         viewinorders.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
+
                 viewinorders.setBackgroundColor(getResources().getColor(R.color.gray));
                 Intent intent = new Intent(Dashboard.this, Vieworders.class);
 
@@ -193,7 +196,7 @@ public class Dashboard extends AppCompatActivity {
         if(myNum == 0) {
             viewactionorders.setEnabled(false);
             shiftstate.setText("Off Shift");
-
+            offview.setVisibility(View.VISIBLE);
             shift.setBackgroundColor(Color.RED);
 
         }
@@ -203,7 +206,7 @@ public class Dashboard extends AppCompatActivity {
             System.out.println("shift url  " + myNum);
             shift.setBackgroundColor(GREEN);
             shiftstate.setText("On Shift");
-
+            offview.setVisibility(View.INVISIBLE);
 
         }
 
@@ -262,11 +265,13 @@ public class Dashboard extends AppCompatActivity {
                 if(newstate == 0) {
                     shift.setBackgroundColor(RED);
                     shiftstate.setText("Off Shift");
+                    offview.setVisibility(View.VISIBLE);
                 }
 
                 if(newstate == 1) {
                     shift.setBackgroundColor(GREEN);
                     shiftstate.setText("On Shift");
+                    offview.setVisibility(View.INVISIBLE);
                 }
 
 

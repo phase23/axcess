@@ -21,6 +21,8 @@ import android.os.Bundle;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 //import com.ahmadrosid.lib.drawroutemap.DrawMarker;
@@ -60,7 +62,8 @@ import java.util.regex.Pattern;
 import ai.axcess.drivers.databinding.ActivityPickupBinding;
 import ai.axcess.drivers.util.DirectionPointListener;
 import ai.axcess.drivers.util.GetPathFromLocation;
-import ai.axcess.drivers.util.RoutePoints;
+import ai.axcess.drivers.util.Routes;
+import ai.axcess.drivers.util.Routes;
 import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -79,10 +82,14 @@ public class Pickup extends FragmentActivity implements OnMapReadyCallback,Googl
     String cunq;
     String thisorderid;
     String whataction;
+    TextView distancetoplace;
     private List<Marker> originMarkers = new ArrayList<>();
     private List<Marker> destinationMarkers = new ArrayList<>();
     private List<Polyline> polylinePaths = new ArrayList<>();
     private ProgressDialog progressDialog;
+
+    private List<Routes> routes = new ArrayList<>();
+    private Marker infoMarker = null;
 
     private Marker mUserMarker;
     private Polyline mRoute;
@@ -101,8 +108,13 @@ public class Pickup extends FragmentActivity implements OnMapReadyCallback,Googl
         SharedPreferences.Editor prefsEditor = shared.edit();
 
 
+        LinearLayout ll = (LinearLayout) findViewById(R.id.topbar);
+        ll.setAlpha(0.5f);
+
+
         fname = shared.getString("sendfname", "");
         cunq = shared.getString("driver", "");
+        distancetoplace = (TextView)findViewById(R.id.distancetoplace);
 
         thisorderid = getIntent().getExtras().getString("orderid");
         whataction = getIntent().getExtras().getString("doaction");
@@ -193,49 +205,10 @@ public class Pickup extends FragmentActivity implements OnMapReadyCallback,Googl
         String API_KEY = getResources().getString(R.string.google_maps_key);
         new GetPathFromLocation(source, destination, alternatives, walkLine, API_KEY, new DirectionPointListener() {
             @Override
-            public void onPath(List<RoutePoints> routes) {
-
-                //a dotted pattern for the walk line
-                final List<PatternItem> pattern = Arrays.asList(new Dot(), new Gap(20));
-                // color for different routes
-                final int routeColors[] = {Color.BLUE, Color.GREEN, Color.RED, Color.YELLOW};
-
-                RoutePoints route = null;
-                int color = routeColors[0];
-                //iterate over all routes
-                for (int i = 0; i < routes.size(); i++) {
-                    route = routes.get(i);
-                    color = routeColors[i];
-                    //draw the driving route
-                    PolylineOptions options = new PolylineOptions()
-                            .addAll(route.drivingRoute)
-                            .width(10)
-                            .color(color)
-                            .clickable(true);
-                    //add the route to the map
-                    Polyline drivingRoute = mMap.addPolyline(options);
-                    //add tag to the route to be accessible
-                    drivingRoute.setTag("route_" + i);
-                }
-                //here we draw the dotted walk line once
-                if (route != null) {
-                    //the dotted line between source->near driving route
-                    PolylineOptions destWalk = new PolylineOptions()
-                            .addAll(route.destWalk)
-                            .width(10)
-                            .color(color)
-                            .pattern(pattern);
-                    //the dotted line between dest->last driving route
-                    PolylineOptions srcWalk = new PolylineOptions()
-                            .addAll(route.sourceWalk)
-                            .width(10)
-                            .color(color)
-                            .pattern(pattern);
-                    //add both routes to the map
-                    mMap.addPolyline(destWalk);
-                    mMap.addPolyline(srcWalk);
-                }
-
+            public void onPath(List<Routes> allRoutes) {
+                routes = allRoutes;
+                drawRoutes();
+                drawDuration(0);
             }
         }).execute();
 
@@ -262,14 +235,99 @@ public class Pickup extends FragmentActivity implements OnMapReadyCallback,Googl
     }
 
 
+    //a dotted pattern for the walk line
+    final List<PatternItem> pattern = Arrays.asList(new Dot(), new Gap(20));
+    // color for different routes
+    final int routeColors[] = {Color.BLUE, Color.GREEN, Color.RED, Color.YELLOW};
 
+    private void drawRoutes() {
+        Routes route = null;
+        int color = routeColors[0];
+        //iterate over all routes
+        for (int i = 0; i < routes.size(); i++) {
+            route = routes.get(i);
+            color = routeColors[i >= routes.size() ? 0 : i];
+            //draw the driving route
+            PolylineOptions options = new PolylineOptions()
+                    .addAll(route.drivingRoute)
+                    .width(10)
+                    .color(color)
+                    .clickable(true);
+            //add the route to the map
+            Polyline drivingRoute = mMap.addPolyline(options);
+            //add tag to the route to be accessible
+            drivingRoute.setTag(route.route_id);
+        }
+        //here we draw the dotted walk line once
+        if (route != null && route.destWalk != null) {
+            //the dotted line between source->near driving route
+            PolylineOptions destWalk = new PolylineOptions()
+                    .addAll(route.destWalk)
+                    .width(10)
+                    .color(color)
+                    .pattern(pattern);
+            //the dotted line between dest->last driving route
+            PolylineOptions srcWalk = new PolylineOptions()
+                    .addAll(route.sourceWalk)
+                    .width(10)
+                    .color(color)
+                    .pattern(pattern);
+            //add both routes to the map
+            mMap.addPolyline(destWalk);
+            mMap.addPolyline(srcWalk);
+        }
+    }
+
+    private void drawDuration(int route_id) {
+        //select route by id from multiple routes
+        Routes route = null;
+        for (Routes r : this.routes) {
+            if (r.route_id == route_id) {
+                route = r;
+                break;
+            }
+        }
+        if (route == null) return;
+
+        /*get route duration*/
+        //text value ex '8 mins'
+        String text_duration = route.text_duration;
+        //value in seconds ex '469'
+        double duration = route.duration;
+
+        /*get route distance*/
+        //text value ex '12 km'
+        String text_distance = route.text_distance;
+        //value in meter ex '12000'
+        double distance = route.distance;
+        //select the middle point on the marker
+        LatLng middlePoint = route.drivingRoute.get(route.drivingRoute.size() / 2);
+        //draw window info to show the distance and duration
+        if (infoMarker != null) infoMarker.remove();
+
+        distancetoplace.setText(text_duration + "\n" + text_distance);
+
+        infoMarker = mMap.addMarker(
+                new MarkerOptions()
+                        .position(middlePoint)
+                        .title(text_duration)
+                        .snippet(text_distance)
+        );
+
+        infoMarker.showInfoWindow();
+
+    }
     @Override
     public void onPolylineClick(Polyline route) {
         //set the clicked route at the top
         route.setZIndex(route.getZIndex() + 1);
         //do something with the selected route..
-        Toast.makeText(this, "" + route.getTag(), Toast.LENGTH_SHORT).show();
+        drawDuration((int) route.getTag());
     }
+
+
+
+
 
 
 

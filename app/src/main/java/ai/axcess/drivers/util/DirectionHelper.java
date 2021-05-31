@@ -1,20 +1,19 @@
 package ai.axcess.drivers.util;
-
 import com.google.android.gms.maps.model.LatLng;
+import com.google.maps.android.SphericalUtil;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 public class DirectionHelper {
 
-    public List<List<HashMap<String, String>>> parse(JSONObject jObject) {
+    public List<Routes> parse(JSONObject jObject, LatLng source, LatLng destination, boolean walkLine) {
 
-        List<List<HashMap<String, String>>> routes = new ArrayList<>();
+        List<Routes> routes = new ArrayList<>();
         JSONArray jRoutes;
         JSONArray jLegs;
         JSONArray jSteps;
@@ -25,13 +24,21 @@ public class DirectionHelper {
 
             /** Traversing all routes */
             for (int i = 0; i < jRoutes.length(); i++) {
+                Routes route = new Routes();
                 jLegs = ((JSONObject) jRoutes.get(i)).getJSONArray("legs");
-                List path = new ArrayList<>();
-
                 /** Traversing all legs */
                 for (int j = 0; j < jLegs.length(); j++) {
-                    jSteps = ((JSONObject) jLegs.get(j)).getJSONArray("steps");
+                    List<LatLng> points = new ArrayList<>();
 
+                    JSONObject duration = ((JSONObject) jLegs.get(j)).getJSONObject("duration");
+                    route.text_duration = duration.getString("text");
+                    route.duration = duration.getDouble("value");
+
+                    JSONObject distance = ((JSONObject) jLegs.get(j)).getJSONObject("distance");
+                    route.text_distance = distance.getString("text");
+                    route.distance = distance.getDouble("value");
+
+                    jSteps = ((JSONObject) jLegs.get(j)).getJSONArray("steps");
                     /** Traversing all steps */
                     for (int k = 0; k < jSteps.length(); k++) {
                         String polyline = "";
@@ -40,13 +47,19 @@ public class DirectionHelper {
 
                         /** Traversing all points */
                         for (int l = 0; l < list.size(); l++) {
-                            HashMap<String, String> hm = new HashMap<>();
-                            hm.put("lat", Double.toString((list.get(l)).latitude));
-                            hm.put("lng", Double.toString((list.get(l)).longitude));
-                            path.add(hm);
+                            LatLng point = list.get(l);
+                            points.add(point);
                         }
                     }
-                    routes.add(path);
+
+                    route.drivingRoute = points;
+                    route.drivingRoute = points;
+                    if (walkLine) {
+                        route.sourceWalk = curvedPolyline(source, points.get(0), 0.8);
+                        route.destWalk = curvedPolyline(points.get(points.size() - 1), destination, 0.8);
+                    }
+                    route.route_id = i;
+                    routes.add(route);
                 }
             }
 
@@ -93,4 +106,38 @@ public class DirectionHelper {
 
         return poly;
     }
+
+    //draw a curved line between point p1, to p2
+    //k defines curvature of the polyline
+    private List<LatLng> curvedPolyline(LatLng p1, LatLng p2, double k) {
+        //Calculate distance and heading between two points
+        double d = SphericalUtil.computeDistanceBetween(p1, p2);
+        double h = SphericalUtil.computeHeading(p1, p2);
+        //Midpoint position
+        LatLng p = SphericalUtil.computeOffset(p1, d * 0.5, h);
+        //Apply some mathematics to calculate position of the circle center
+        double x = (1 - k * k) * d * 0.5 / (2 * k);
+        double r = (1 + k * k) * d * 0.5 / (2 * k);
+
+        LatLng c = SphericalUtil.computeOffset(p, x, h + 90.0);
+
+        //Calculate heading between circle center and two points
+        double h1 = SphericalUtil.computeHeading(c, p1);
+        double h2 = SphericalUtil.computeHeading(c, p2);
+
+        //Calculate positions of points on circle border and add them to polyline options
+        int numpoints = 100;
+        double step = (h2 - h1) / numpoints;
+
+        List<LatLng> points = new ArrayList<>();
+
+        for (int i = 0; i < numpoints; i++) {
+            LatLng pi = SphericalUtil.computeOffset(c, r, h1 + i * step);
+            points.add(pi);
+        }
+
+        //Draw polyline
+        return points;
+    }
+
 }

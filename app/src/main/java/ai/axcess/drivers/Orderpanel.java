@@ -12,6 +12,8 @@ import android.graphics.Color;
 import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.text.Html;
@@ -50,7 +52,9 @@ public class Orderpanel extends AppCompatActivity {
     String is_pickedup;
     String driver_accept;
     ProgressBar progressBar;
-
+    String customerphonenumber;
+    String passthephone;
+    String ordernumb;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -260,12 +264,12 @@ public class Orderpanel extends AppCompatActivity {
 
         int idup;
         int idup2;
-
+        int idup3;
         System.out.println(makebtn + "number buttons: " + Arrays.toString(dishout));
         for (int i = 0; i < makebtn; i++) {
             idup = i + 20;
             idup2 = idup + 20;
-
+            idup3 = idup2 + 20;
 
             tline = dishout[i] ;
             String[] sbtns = tline.split("~");
@@ -275,16 +279,16 @@ public class Orderpanel extends AppCompatActivity {
             driver_accept = sbtns[3];
             is_pickedup = sbtns[4];
             zone = sbtns[5];
-
-
+            customerphonenumber = sbtns[6];
+            ordernumb = sbtns[7];
 
             // System.out.println(makebtn + "action listed: " +  printwforce + "col:  " +  imgx );
 
             TextView panel = new TextView(this);
-            panel.setText("From: "+ company + "\n\n To: Zone " + zone );
+            panel.setText("From: "+ company + "\nTo: Zone " + zone + "\nOrder No:" +  ordernumb + "\n\n" );
             panel.setLayoutParams(Params1);
             //panel.setWidth(200);
-            panel.setPadding(20, 5, 20, 5 );
+            panel.setPadding(20, 5, 20, 15 );
             panel.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18f);
             panel.setTypeface(null, Typeface.BOLD);
             panel.setGravity(Gravity.LEFT);
@@ -292,10 +296,84 @@ public class Orderpanel extends AppCompatActivity {
             panel.setBackgroundColor(getResources().getColor(R.color.gray));
 
 
+            Drawable img = getApplicationContext().getResources().getDrawable(R.drawable.ic_baseline_contact_phone_24);
+
+            if(is_pickedup.equals("1")) {
+                Button customerphone = new Button(this);
+                customerphone.setId(idup3);
+                customerphone.setTag(customerphonenumber);
+                final int cusphone = customerphone.getId();
+                customerphone.setText(" Call customer");
+                customerphone.setTextSize(25);
+                customerphone.setLayoutParams(dropoffbtn);
+
+                customerphone.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_baseline_contact_phone_24, 0, 0, 0);
+                customerphone.setPadding(5, 15, 5, 5);
+                customerphone.setBackgroundColor(Color.rgb(249, 249, 249));
+                layout.addView(customerphone);
+                customerphone = ((Button) findViewById(cusphone));
+
+
+
+                customerphone.setOnClickListener(new View.OnClickListener() {
+
+                    public void onClick(View view) {
+
+                        final String tagname = (String)view.getTag();
+                        Log.i("accept tag", tagname);
+
+
+                        AlertDialog.Builder builder = new AlertDialog.Builder(Orderpanel.this);
+                        builder.setTitle("CALL CUSTOMER");
+
+                        builder.setMessage(Html.fromHtml("Do you want to Call ?"));
+
+                        builder.setPositiveButton("YES", new DialogInterface.OnClickListener() {
+
+                            public void onClick(DialogInterface dialog, int which) {
+                                String phonenumber = tagname.trim();
+
+                                Uri number = Uri.parse("tel:" + phonenumber);
+                                Intent callIntent = new Intent(Intent.ACTION_DIAL, number);
+                                startActivity(callIntent);
+
+                            }
+                        });
+
+                        builder.setNegativeButton("NO", new DialogInterface.OnClickListener() {
+
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+
+                                // Do nothing
+                                dialog.dismiss();
+                            }
+                        });
+
+                        AlertDialog alert = builder.create();
+                        alert.show();
+
+
+
+
+
+
+
+
+
+                    }
+                });
+
+
+
+
+
+            }
+
             if(is_pickedup.equals("0")) {
                 Button btn = new Button(this);
                 btn.setId(i);
-                btn.setTag(orderid);
+                btn.setTag(orderid + "~" + company + "~" + zone + '~' + customerphonenumber);
                 final int routetopickup = btn.getId();
                 btn.setText(" Route to Pickup  ");
                 params.width = 300;
@@ -314,12 +392,19 @@ public class Orderpanel extends AppCompatActivity {
 
                         final String tagname = (String)view.getTag();
                         Log.i("pickup tag", tagname);
-                        sendorderid = tagname.trim();
+
+
+                        String disrupttag = tagname.trim();
+                        String[] desrupted = disrupttag.split("~");
+                        sendorderid = desrupted[0];
+                        passthephone = desrupted[3];
 
                         progressBar.setVisibility(View.VISIBLE);
                         Intent activity = new Intent(getApplicationContext(), Pickup.class);
                         activity.putExtra("orderid",sendorderid);
                         activity.putExtra("doaction","pickup");
+                        activity.putExtra("passthephone",passthephone);
+                        progressBar.setVisibility(View.INVISIBLE);
                         startActivity(activity);
 
 
@@ -333,7 +418,7 @@ public class Orderpanel extends AppCompatActivity {
 
             Button btn2 = new Button(this);
             btn2.setId(idup);
-            btn2.setTag(orderid);
+            btn2.setTag(orderid + "~" + company + "~" + zone + '~' + customerphonenumber);
             final int routetodrop = btn2.getId();
             btn2.setText(" Route to Drop off " );
             btn2.setTextSize(25);
@@ -358,12 +443,19 @@ public class Orderpanel extends AppCompatActivity {
                     final String tagname = (String)view.getTag();
                     Log.i("drop off tag", tagname);
 
-                    sendorderid = tagname.trim();
+
+
+                    String disrupttag = tagname.trim();
+                    String[] desrupted = disrupttag.split("~");
+                    sendorderid = desrupted[0];
+                    passthephone = desrupted[3];
 
                     progressBar.setVisibility(View.VISIBLE);
                     Intent activity = new Intent(getApplicationContext(), Pickup.class);
                     activity.putExtra("orderid",sendorderid);
+                    activity.putExtra("passthephone",passthephone);
                     activity.putExtra("doaction","dropoff");
+                    progressBar.setVisibility(View.INVISIBLE);
                     startActivity(activity);
 
                 }
@@ -374,7 +466,7 @@ public class Orderpanel extends AppCompatActivity {
             if(is_pickedup.equals("1")) {
                 Button btn3 = new Button(this);
                 btn3.setId(idup2);
-                btn3.setTag(orderid + "~" + company + "~" + zone);
+                btn3.setTag(orderid + "~" + company + "~" + zone + '~' + customerphonenumber);
                 final int dropoff = btn3.getId();
                 btn3.setText(" Order Completed " );
                 btn3.setTextSize(25);
