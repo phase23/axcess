@@ -341,6 +341,7 @@ public class Vieworders extends AppCompatActivity {
             //panel.setWidth(200);
             panel.setPadding(20, 5, 20, 5 );
             panel.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18f);
+            panel.setTextColor(getResources().getColor(R.color.black));
             panel.setTypeface(null, Typeface.BOLD);
             panel.setGravity(Gravity.LEFT);
             layout.addView(panel);
@@ -367,6 +368,7 @@ public class Vieworders extends AppCompatActivity {
             final int decline = btn2.getId();
             btn2.setText(" Decline  " );
             btn2.setTextSize(25);
+            btn2.setTextColor(getResources().getColor(R.color.black));
             btn2.setLayoutParams(declinebtn);
             btn2.setPadding(5, 15, 5, 5 );
             btn2.setBackgroundColor(Color.rgb(249, 249, 249));

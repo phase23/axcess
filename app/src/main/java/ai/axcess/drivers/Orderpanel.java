@@ -294,8 +294,8 @@ public class Orderpanel extends AppCompatActivity {
                 .build();
         try {
             //String responseBody;
-            okhttp3.Response response = client.newCall(request).execute();
-            // Response response = client.newCall(request).execute();
+            //okhttp3.Response response = client.newCall(request).execute();
+            Response response = client.newCall(request).execute();
             if (response.isSuccessful()){
                 Log.i("SUCC",""+response.message());
             }
@@ -398,12 +398,19 @@ public class Orderpanel extends AppCompatActivity {
 
             TextView panel = new TextView(getApplicationContext());
             panel.setText("From: "+ company + "\nTo: Zone " + zone + "\nOrder No:" +  ordernumb + "\n\n" );
+
+            if(is_pickedup.equals("1")) {
+
+                panel.setText("From: "+ company + "\nTo: Zone " + zone + "\nOrder No:" +  ordernumb + " (Order picked-up)\n\n" );
+            }
+
             panel.setLayoutParams(Params1);
             //panel.setWidth(200);
             panel.setPadding(20, 5, 20, 15 );
             panel.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18f);
             panel.setTypeface(null, Typeface.BOLD);
             panel.setGravity(Gravity.LEFT);
+            panel.setTextColor(getResources().getColor(R.color.black));
             layout.addView(panel);
             panel.setBackgroundColor(getResources().getColor(R.color.gray));
 
@@ -416,6 +423,7 @@ public class Orderpanel extends AppCompatActivity {
                 customerphone.setTag(customerphonenumber);
                 final int cusphone = customerphone.getId();
                 customerphone.setText(" Call customer");
+                customerphone.setTextColor(getResources().getColor(R.color.black));
                 customerphone.setTextSize(25);
                 customerphone.setLayoutParams(dropoffbtn);
 
@@ -543,6 +551,7 @@ public class Orderpanel extends AppCompatActivity {
             btn2.setTag(orderid + "~" + company + "~" + zone + '~' + customerphonenumber);
             final int routetodrop = btn2.getId();
             btn2.setText(" Route to Drop off " );
+            btn2.setTextColor(getResources().getColor(R.color.black));
             btn2.setTextSize(25);
             btn2.setLayoutParams(dropoffbtn);
             btn2.setPadding(5, 15, 5, 5 );
@@ -599,7 +608,8 @@ public class Orderpanel extends AppCompatActivity {
                 btn3.setTextSize(25);
                 btn3.setLayoutParams(dropoffbtn);
                 btn3.setPadding(5, 15, 5, 5);
-                btn3.setBackgroundColor(Color.rgb(249, 249, 249));
+                //btn3.setBackgroundColor(Color.rgb(249, 249, 249));
+                btn3.setTextColor(getResources().getColor(R.color.black));
                 layout.addView(btn3);
 
                 btn3 = ((Button) findViewById(dropoff));

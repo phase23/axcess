@@ -134,9 +134,27 @@ public class Dashboard extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
+                dialog = new SpotsDialog.Builder()
+                        .setMessage("Please Wait")
+                        .setContext(Dashboard.this)
+                        .build();
+                dialog.show();
+
+
+
+                handler = new Handler();
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run(){
+
 
                 Intent intent = new Intent(Dashboard.this, Earnings.class);
                 startActivity(intent);
+                        dialog.dismiss();
+
+
+                    }
+                }, 1000);
 
             }
         });

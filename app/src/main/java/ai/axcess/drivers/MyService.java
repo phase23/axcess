@@ -29,10 +29,13 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import java.io.IOException;
 
+import okhttp3.Call;
+import okhttp3.Callback;
 import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
+import okhttp3.Response;
 
 public class MyService extends Service {
     Context mContext;
@@ -130,8 +133,25 @@ public class MyService extends Service {
         }, TWENTY_SECONDS);
 
 
+/*
+
+        handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            public void run() {
 
 
+        try {
+            checkneworder("https://axcess.ai/barapp/driver_isneworder.php?test=1&action=checkorder&driverid="+cunq);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+                handler.postDelayed(this, TWENTY_SECONDS);
+            }
+        }, TWENTY_SECONDS);
+
+
+       */
 
     }
 
@@ -273,6 +293,108 @@ public class MyService extends Service {
     }
 
 
+
+
+
+
+
+
+        void checkneworder(String url) throws IOException{
+            System.out.println("url " + url);
+            Request request = new Request.Builder()
+                    .url(url)
+                    .build();
+
+            OkHttpClient client = new OkHttpClient();
+            client.newCall(request)
+                    .enqueue(new Callback() {
+                        @Override
+                        public void onFailure(final Call call, IOException e) {
+                            // Error
+
+                            handler = new Handler();
+                            Thread thread = new Thread() {
+                            //runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    // For the example, you can show an error dialog or a toast
+                                    // on the main UI thread
+                                }
+                            };
+                        }
+
+                        @Override
+                        public void onResponse(Call call, final Response response) throws IOException {
+
+                            String outputthis = response.body().string();
+
+                            outputthis = outputthis.trim();
+
+                            int myNum = 0;
+                            try {
+                                myNum = Integer.parseInt(outputthis);
+                            } catch(NumberFormatException nfe) {
+                                System.out.println("Could not parse " + nfe);
+                            }
+
+                            if(myNum == 0){
+                                if(player != null){
+                                    player.stop();
+                                }
+                                if(isRunning) {
+                                    handler2.removeCallbacksAndMessages(null);
+                                    isRunning = false;
+                                }
+
+                                sendalerttoActivity("whitebtn");
+                            }else {
+
+                                sendalerttoActivity("redbtn");
+                                handler2 = new Handler();
+
+                                handler2.postDelayed(new Runnable() {
+                                    public void run() {
+                                        isRunning = true;
+                                        startplayer();
+
+                                        handler2.postDelayed(this, TW0_SECONDS);
+                                    }
+                                }, TW0_SECONDS);
+
+                            }
+
+
+
+
+
+                        }//end void
+
+                    });
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     public void isneworder(String driverid) {
 
 
@@ -323,23 +445,24 @@ public class MyService extends Service {
                 sendalerttoActivity("whitebtn");
             }else {
 
-                sendalerttoActivity("redbtn");
-                handler2 = new Handler();
 
-                handler2.postDelayed(new Runnable() {
-                    public void run() {
-                        isRunning = true;
-                        startplayer();
+                if (isRunning) {
 
-                        handler2.postDelayed(this, TW0_SECONDS);
+                    } else {
+
+                        sendalerttoActivity("redbtn");
+                        handler2 = new Handler();
+                        handler2.postDelayed(new Runnable() {
+                            public void run() {
+                                isRunning = true;
+                                startplayer();
+
+                                handler2.postDelayed(this, TW0_SECONDS);
+                                }
+                            }, TW0_SECONDS);
+
                     }
-                }, TW0_SECONDS);
-
-
-
-
-            }
-
+                }
 
             Log.i("respBody:outthis",outputthis);
 
