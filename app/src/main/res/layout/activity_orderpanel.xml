@@ -8,10 +8,14 @@
 
 
 
+
+
+
     <LinearLayout android:id="@+id/orderwrapper"
         android:layout_width="wrap_content"
         android:orientation="vertical"
         android:layout_height="wrap_content">
+
 
 
         <LinearLayout android:id="@+id/LinearLayout02"
@@ -67,13 +71,16 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
+
             <ProgressBar
-                android:id="@+id/progress_loader"
+                android:id="@+id/pbProgress"
                 style="?android:attr/progressBarStyle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center"
                 android:layout_centerInParent="true"
                 android:visibility="invisible" />
+
 
 
 

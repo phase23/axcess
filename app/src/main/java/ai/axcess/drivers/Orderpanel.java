@@ -15,6 +15,7 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.provider.Settings;
 import android.text.Html;
 import android.util.Log;
@@ -34,10 +35,14 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.regex.Pattern;
 
+import dmax.dialog.SpotsDialog;
+import okhttp3.Call;
+import okhttp3.Callback;
 import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
+import okhttp3.Response;
 
 public class Orderpanel extends AppCompatActivity {
     Button back;
@@ -55,6 +60,11 @@ public class Orderpanel extends AppCompatActivity {
     String customerphonenumber;
     String passthephone;
     String ordernumb;
+    AlertDialog dialog;
+    public Handler handler;
+
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -62,6 +72,15 @@ public class Orderpanel extends AppCompatActivity {
 
         SharedPreferences shared = getSharedPreferences("autoLogin", MODE_PRIVATE);
         SharedPreferences.Editor prefsEditor = shared.edit();
+/*
+        dialog = new SpotsDialog.Builder()
+                .setMessage("Now loading...")
+                .setContext(Orderpanel.this)
+                .build();
+        dialog.show();
+*/
+        progressBar = (ProgressBar)findViewById(R.id.pbProgress);
+        progressBar.setVisibility(View.VISIBLE);
 
         fname = shared.getString("sendfname", "");
         cunq = shared.getString("driver", "");
@@ -69,33 +88,36 @@ public class Orderpanel extends AppCompatActivity {
         back = (Button)findViewById(R.id.backbtn);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
-        progressBar = (ProgressBar)findViewById(R.id.progress_loader);
+
 
         back.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 back.setBackgroundColor(getResources().getColor(R.color.gray));
-               /*
+                //dialog.dismiss();
+
                 Intent intent = new Intent(Orderpanel.this, Dashboard.class);
                 startActivity(intent);
 
-
-                */
-                //this.dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BACK));
-                finish();
             }
         });
 
 
 
+        try {
+            returnorders("https://axcess.ai/barapp/driver_getorders.php?&action=acceptedorders&driverid="+cunq);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
+
+/*
         String returnorders = getacceptedorders( cunq );
 
         try {
 
             String[] dishout = returnorders.split(Pattern.quote("*"));
             System.out.println("number tickets: " + Arrays.toString(dishout));
-
             createLayoutDynamically(returnorders);
 
 
@@ -114,6 +136,14 @@ public class Orderpanel extends AppCompatActivity {
 
         }
 
+ */
+
+
+    }
+
+
+    @Override
+    public void onBackPressed() {
 
     }
 
@@ -153,6 +183,87 @@ public class Orderpanel extends AppCompatActivity {
     }
 
 
+    void returnorders(String url) throws IOException{
+        Request request = new Request.Builder()
+                .url(url)
+                .build();
+
+        OkHttpClient client = new OkHttpClient();
+        client.newCall(request)
+                .enqueue(new Callback() {
+                    @Override
+                    public void onFailure(final Call call, IOException e) {
+                        // Error
+
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                // For the example, you can show an error dialog or a toast
+                                // on the main UI thread
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onResponse(Call call, final Response response) throws IOException {
+
+                        String resulting = response.body().string();
+
+
+                        try {
+
+                            String[] dishout = resulting.split(Pattern.quote("*"));
+                            System.out.println("number tickets: " + Arrays.toString(dishout));
+                            //dialog.dismiss();
+
+                            createLayoutDynamically(resulting);
+
+
+                        } catch(ArrayIndexOutOfBoundsException e) {
+
+                            LinearLayout layout = (LinearLayout) findViewById(R.id.scnf);
+                            layout.setOrientation(LinearLayout.VERTICAL);
+
+                            TextView newtxt = new TextView(getApplicationContext());
+                            newtxt.setText(Html.fromHtml("No orders"));
+                            newtxt.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f);
+                            newtxt.setPadding(0, 0, 0, 20 );
+                            newtxt.setTypeface(null, Typeface.BOLD);
+                            newtxt.setGravity(Gravity.CENTER);
+                            layout.addView(newtxt);
+
+                        }
+
+
+
+
+
+
+
+
+
+                    }//end void
+
+                });
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     public String actionorder( String cunq , String theorder, String action ) {
 
@@ -160,10 +271,10 @@ public class Orderpanel extends AppCompatActivity {
         Bundle bundle = new Bundle();
         bundle.putString("stophandler", "yes");
 
-        Intent i = new Intent(this, MyService.class);
-        this.stopService(i);
-        i.putExtras(bundle);
-        this.startService(i);
+       // Intent i = new Intent(this, MyService.class);
+        //this.stopService(i);
+        //i.putExtras(bundle);
+        //this.startService(i);
 
         String thisdevice = Settings.Secure.getString(this.getContentResolver(),
                 Settings.Secure.ANDROID_ID);
@@ -200,53 +311,54 @@ public class Orderpanel extends AppCompatActivity {
 
 
 
-
     private void createLayoutDynamically( String scantext) {
 
-        LinearLayout layout = (LinearLayout) findViewById(R.id.scnf);
-        layout.setOrientation(LinearLayout.VERTICAL);
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+
+                progressBar.setVisibility(View.INVISIBLE);
+                LinearLayout layout = (LinearLayout) findViewById(R.id.scnf);
+                layout.setOrientation(LinearLayout.VERTICAL);
 
 
-
-
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
 
-
-        TextView newtxt = new TextView(this);
-        newtxt.setText(Html.fromHtml(" "));
-        newtxt.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f);
-        newtxt.setPadding(0, 0, 0, 40 );
-        newtxt.setTypeface(null, Typeface.BOLD);
-        newtxt.setGravity(Gravity.CENTER);
-        layout.addView(newtxt);
-
+            TextView newtxt = new TextView(getApplicationContext());
+            newtxt.setText(Html.fromHtml(" "));
+            newtxt.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f);
+            newtxt.setPadding(0, 0, 0, 40 );
+            newtxt.setTypeface(null, Typeface.BOLD);
+            newtxt.setGravity(Gravity.CENTER);
+            layout.addView(newtxt);
 
 
-        LinearLayout.LayoutParams Params1 = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,180);
-        Params1.setMargins(0, 0, 0, 0);
 
-        LinearLayout.LayoutParams pickupbtn = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,180);
-        pickupbtn.setMargins(0, 0, 0, 10);
-        LinearLayout.LayoutParams dropoffbtn = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,180);
-        dropoffbtn.setMargins(0, 0, 0, 60);
+            LinearLayout.LayoutParams Params1 = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,180);
+            Params1.setMargins(0, 0, 0, 0);
+
+            LinearLayout.LayoutParams pickupbtn = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,180);
+            pickupbtn.setMargins(0, 0, 0, 10);
+            LinearLayout.LayoutParams dropoffbtn = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,180);
+            dropoffbtn.setMargins(0, 0, 0, 60);
 
 
         //params.gravity = Gravity.TOP;
-        layout.setGravity(Gravity.CENTER|Gravity.TOP);
+            layout.setGravity(Gravity.CENTER|Gravity.TOP);
 
-        params.setMargins(10, 5, 0, 30);
+            params.setMargins(10, 5, 0, 30);
 
-        System.out.println("number scantxt : "+ scantext );
+            System.out.println("number scantxt : "+ scantext );
         // String[] separated = scantext.split(Pattern.quote("|"));
 
-        String[] dishout = scantext.split(Pattern.quote("*"));
+            String[] dishout = scantext.split(Pattern.quote("*"));
 
-        int makebtn = dishout.length ;
-        String tline;
+            int makebtn = dishout.length ;
+            String tline;
 
 
-        String locationid;
+            String locationid;
 
 
 /*
@@ -284,7 +396,7 @@ public class Orderpanel extends AppCompatActivity {
 
             // System.out.println(makebtn + "action listed: " +  printwforce + "col:  " +  imgx );
 
-            TextView panel = new TextView(this);
+            TextView panel = new TextView(getApplicationContext());
             panel.setText("From: "+ company + "\nTo: Zone " + zone + "\nOrder No:" +  ordernumb + "\n\n" );
             panel.setLayoutParams(Params1);
             //panel.setWidth(200);
@@ -299,7 +411,7 @@ public class Orderpanel extends AppCompatActivity {
             Drawable img = getApplicationContext().getResources().getDrawable(R.drawable.ic_baseline_contact_phone_24);
 
             if(is_pickedup.equals("1")) {
-                Button customerphone = new Button(this);
+                Button customerphone = new Button(getApplicationContext());
                 customerphone.setId(idup3);
                 customerphone.setTag(customerphonenumber);
                 final int cusphone = customerphone.getId();
@@ -371,7 +483,7 @@ public class Orderpanel extends AppCompatActivity {
             }
 
             if(is_pickedup.equals("0")) {
-                Button btn = new Button(this);
+                Button btn = new Button(getApplicationContext());
                 btn.setId(i);
                 btn.setTag(orderid + "~" + company + "~" + zone + '~' + customerphonenumber);
                 final int routetopickup = btn.getId();
@@ -390,6 +502,15 @@ public class Orderpanel extends AppCompatActivity {
 
                     public void onClick(View view) {
 
+
+                        dialog = new SpotsDialog.Builder()
+                                .setMessage("Calculating")
+                                .setContext(Orderpanel.this)
+                                .build();
+                        dialog.show();
+
+
+
                         final String tagname = (String)view.getTag();
                         Log.i("pickup tag", tagname);
 
@@ -399,13 +520,14 @@ public class Orderpanel extends AppCompatActivity {
                         sendorderid = desrupted[0];
                         passthephone = desrupted[3];
 
-                        progressBar.setVisibility(View.VISIBLE);
-                        Intent activity = new Intent(getApplicationContext(), Pickup.class);
-                        activity.putExtra("orderid",sendorderid);
-                        activity.putExtra("doaction","pickup");
-                        activity.putExtra("passthephone",passthephone);
-                        progressBar.setVisibility(View.INVISIBLE);
-                        startActivity(activity);
+
+
+                                gettheroutes( sendorderid,  passthephone, "pickup" );
+
+
+
+
+
 
 
                     }
@@ -416,7 +538,7 @@ public class Orderpanel extends AppCompatActivity {
 
 
 
-            Button btn2 = new Button(this);
+            Button btn2 = new Button(getApplicationContext());
             btn2.setId(idup);
             btn2.setTag(orderid + "~" + company + "~" + zone + '~' + customerphonenumber);
             final int routetodrop = btn2.getId();
@@ -439,6 +561,14 @@ public class Orderpanel extends AppCompatActivity {
 
                 public void onClick(View view) {
 
+                    dialog = new SpotsDialog.Builder()
+                            .setMessage("Calculating")
+                            .setContext(Orderpanel.this)
+                            .build();
+                    dialog.show();
+
+
+
 
                     final String tagname = (String)view.getTag();
                     Log.i("drop off tag", tagname);
@@ -450,13 +580,10 @@ public class Orderpanel extends AppCompatActivity {
                     sendorderid = desrupted[0];
                     passthephone = desrupted[3];
 
-                    progressBar.setVisibility(View.VISIBLE);
-                    Intent activity = new Intent(getApplicationContext(), Pickup.class);
-                    activity.putExtra("orderid",sendorderid);
-                    activity.putExtra("passthephone",passthephone);
-                    activity.putExtra("doaction","dropoff");
-                    progressBar.setVisibility(View.INVISIBLE);
-                    startActivity(activity);
+
+                    gettheroutes(sendorderid, passthephone, "dropoff");
+
+
 
                 }
             });
@@ -464,7 +591,7 @@ public class Orderpanel extends AppCompatActivity {
 
 
             if(is_pickedup.equals("1")) {
-                Button btn3 = new Button(this);
+                Button btn3 = new Button(getApplicationContext());
                 btn3.setId(idup2);
                 btn3.setTag(orderid + "~" + company + "~" + zone + '~' + customerphonenumber);
                 final int dropoff = btn3.getId();
@@ -547,26 +674,76 @@ public class Orderpanel extends AppCompatActivity {
             btn2 = ((Button) findViewById(routetodrop));
 
 
-
-
-
-
-
-
-
-
-
-
-
-
         }//end make buttons
 
+
+
+            }
+        });
 
     }
 
 
 
+    public void  gettheroutes(String orderid, String passthephone, String doaction ){
 
+
+
+
+
+        try {
+            returnroute("https://axcess.ai/barapp/driver_route.php?&action=" + doaction + "&driverid="+cunq + "&orderid=" + orderid);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
+
+
+    }
+
+
+    void returnroute(String url) throws IOException{
+        Request request = new Request.Builder()
+                .url(url)
+                .build();
+
+        OkHttpClient client = new OkHttpClient();
+        client.newCall(request)
+                .enqueue(new Callback() {
+                    @Override
+                    public void onFailure(final Call call, IOException e) {
+                        // Error
+
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                // For the example, you can show an error dialog or a toast
+                                // on the main UI thread
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onResponse(Call call, final Response response) throws IOException {
+
+
+
+                        String resulting = response.body().string();
+
+                        Intent activity = new Intent(getApplicationContext(), Pickup.class);
+                        activity.putExtra("orderid",sendorderid);
+                        activity.putExtra("passthephone",passthephone);
+                        activity.putExtra("theroute",resulting);
+                        startActivity(activity);
+
+                        dialog.dismiss();
+
+                    }//end void
+
+                });
+    }
 
 
 

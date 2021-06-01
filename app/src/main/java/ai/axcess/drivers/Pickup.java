@@ -16,11 +16,14 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.text.Html;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -64,10 +67,14 @@ import ai.axcess.drivers.util.DirectionPointListener;
 import ai.axcess.drivers.util.GetPathFromLocation;
 import ai.axcess.drivers.util.Routes;
 import ai.axcess.drivers.util.Routes;
+import okhttp3.Call;
+import okhttp3.Callback;
 import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
+import okhttp3.Response;
+
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 
@@ -95,7 +102,9 @@ public class Pickup extends FragmentActivity implements OnMapReadyCallback,Googl
     private Polyline mRoute;
     private Marker mStartMarker;
     private Marker drivermaker;
-
+    String thephone;
+    Button dialcustomer;
+    String theroute;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -117,9 +126,55 @@ public class Pickup extends FragmentActivity implements OnMapReadyCallback,Googl
         distancetoplace = (TextView)findViewById(R.id.distancetoplace);
 
         thisorderid = getIntent().getExtras().getString("orderid");
-        whataction = getIntent().getExtras().getString("doaction");
+        //whataction = getIntent().getExtras().getString("doaction");
+        thephone = getIntent().getExtras().getString("passthephone");
+        theroute = getIntent().getExtras().getString("theroute");
        // String theroute = getroute(cunq, thisorderid);
 
+        dialcustomer = (Button)findViewById(R.id.dialcustomer);
+
+
+
+        dialcustomer.setOnClickListener(new View.OnClickListener() {
+
+            public void onClick(View view) {
+
+
+
+
+                AlertDialog.Builder builder = new AlertDialog.Builder(Pickup.this);
+                builder.setTitle("CALL CUSTOMER");
+
+                builder.setMessage(Html.fromHtml("<b>Do you want to Call ?</b>"));
+
+                builder.setPositiveButton("YES", new DialogInterface.OnClickListener() {
+
+                    public void onClick(DialogInterface dialog, int which) {
+
+                        Uri number = Uri.parse("tel:" + thephone);
+                        Intent callIntent = new Intent(Intent.ACTION_DIAL, number);
+                        startActivity(callIntent);
+
+                    }
+                });
+
+                builder.setNegativeButton("NO", new DialogInterface.OnClickListener() {
+
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                        // Do nothing
+                        dialog.dismiss();
+                    }
+                });
+
+                AlertDialog alert = builder.create();
+                alert.show();
+
+
+
+            }
+        });
 
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
@@ -147,7 +202,11 @@ public class Pickup extends FragmentActivity implements OnMapReadyCallback,Googl
         //draw alternative routes if possible
         boolean alternatives = true;
 
-        String theroute = getroute(cunq, thisorderid, whataction);
+
+
+
+
+        //String theroute = getroute(cunq, thisorderid, whataction);
 
             theroute = theroute.trim();
         String[] havles = theroute.split(Pattern.quote("~"));
@@ -307,6 +366,7 @@ public class Pickup extends FragmentActivity implements OnMapReadyCallback,Googl
 
         distancetoplace.setText(text_duration + "\n" + text_distance);
 
+        /*
         infoMarker = mMap.addMarker(
                 new MarkerOptions()
                         .position(middlePoint)
@@ -315,7 +375,7 @@ public class Pickup extends FragmentActivity implements OnMapReadyCallback,Googl
         );
 
         infoMarker.showInfoWindow();
-
+           */
     }
     @Override
     public void onPolylineClick(Polyline route) {
@@ -411,6 +471,9 @@ public class Pickup extends FragmentActivity implements OnMapReadyCallback,Googl
         LocalBroadcastManager.getInstance(this).unregisterReceiver(messageReceiver);
         super.onPause();
     }
+
+
+
 
 
 

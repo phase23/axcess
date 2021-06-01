@@ -21,6 +21,8 @@ import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
@@ -30,11 +32,16 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.IOException;
+import java.util.regex.Pattern;
 
+import dmax.dialog.SpotsDialog;
+import okhttp3.Call;
+import okhttp3.Callback;
 import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
+import okhttp3.Response;
 
 import static android.graphics.Color.GREEN;
 import static android.graphics.Color.RED;
@@ -49,8 +56,9 @@ public class Dashboard extends AppCompatActivity {
     TextView offview;
     Button shift;
     Button viewinorders;
+    Button viewearnings;
     Button viewactionorders;
-
+    AlertDialog dialog;
     Button llogout;
     String responseLocation;
     String fname;
@@ -58,6 +66,11 @@ public class Dashboard extends AppCompatActivity {
     String isgpson;
     private int name;
     int newstate;
+    public Handler handler;
+    Handler handler2;
+    String returnshift;
+    String somebits;
+    String orderspending;
 
 
     @Override
@@ -66,12 +79,17 @@ public class Dashboard extends AppCompatActivity {
         setContentView(R.layout.activity_dashboard);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
+
+
+
+
+
         SharedPreferences shared = getSharedPreferences("autoLogin", MODE_PRIVATE);
         SharedPreferences.Editor prefsEditor = shared.edit();
         int j = shared.getInt("key", 0);
 
 
-
+        handler2 = new Handler(Looper.getMainLooper());
 
 
         registerReceiver(gpsReceiver, new IntentFilter(LocationManager.PROVIDERS_CHANGED_ACTION));
@@ -86,18 +104,17 @@ public class Dashboard extends AppCompatActivity {
 
 
 
-        String getunsettledorders = getordercount( cunq );
+        //String getunsettledorders = getordercount( cunq );
 
 
         shift = (Button)findViewById(R.id.Startshift);
 
         llogout = (Button)findViewById(R.id.logout);
         viewinorders = (Button)findViewById(R.id.vieworders);
-
+        viewearnings = (Button)findViewById(R.id.viewearnings);
 
         viewactionorders = (Button)findViewById(R.id.actionorders);
-        getunsettledorders = getunsettledorders.trim();
-        viewactionorders.setText("View Orders ("+ getunsettledorders + ")" );
+
         //viewactionorders.setBackgroundDrawable(getResources().getDrawable(R.drawable.btnani));
 
 
@@ -106,17 +123,50 @@ public class Dashboard extends AppCompatActivity {
         offview = (TextView)findViewById(R.id.offlinemsg);
         driver.setText(fname);
 
-        getShift(cunq);
+       // getShift(cunq);
+        gettershift(cunq);
         checklocationstatus();
 
+
+
+
+        viewearnings.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+
+                Intent intent = new Intent(Dashboard.this, Earnings.class);
+                startActivity(intent);
+
+            }
+        });
 
 
         viewactionorders.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
-                Intent intent = new Intent(Dashboard.this, Orderpanel.class);
-                startActivity(intent);
+                dialog = new SpotsDialog.Builder()
+                        .setMessage("Please Wait")
+                        .setContext(Dashboard.this)
+                        .build();
+                dialog.show();
+
+
+                handler = new Handler();
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run(){
+
+                        Intent intent = new Intent(Dashboard.this, Orderpanel.class);
+                        startActivity(intent);
+                        dialog.dismiss();
+
+                    }
+                    }, 1000);
+
+
+
 
             }
         });
@@ -145,11 +195,27 @@ public class Dashboard extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
+                dialog = new SpotsDialog.Builder()
+                        .setMessage("Please Wait")
+                        .setContext(Dashboard.this)
+                        .build();
+                dialog.show();
 
-                viewinorders.setBackgroundColor(getResources().getColor(R.color.gray));
+                handler = new Handler();
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run(){
+
+
+
+
                 Intent intent = new Intent(Dashboard.this, Vieworders.class);
 
                 startActivity(intent);
+                        dialog.dismiss();
+
+                    }
+                }, 1000);
 
 
             }
@@ -176,11 +242,28 @@ public class Dashboard extends AppCompatActivity {
 
     }
 
+    public void gettershift(String cunq){
+
+        try {
+            doGetRequest("https://axcess.ai/barapp/driver_shiftaction.php?&action=getshift&cunq="+cunq);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }//end
 
     public void getShift(String cunq){
 
-        String returnshift = Shiftaction(cunq );
+        String bits = Shiftaction(cunq );
+        String[] pieces = bits.split(Pattern.quote("~"));
+
+
+        returnshift = pieces[0];
         returnshift = returnshift.trim();
+
+        String getunsettledorders = pieces[1];
+        getunsettledorders = getunsettledorders.trim();
+        viewactionorders.setText("View Orders ("+ getunsettledorders + ")" );
 
         int myNum = 0;
         try {
@@ -214,12 +297,147 @@ public class Dashboard extends AppCompatActivity {
     }
 
 
+    void getviewcount(String url) throws IOException{
+        Request request = new Request.Builder()
+                .url(url)
+                .build();
+
+        OkHttpClient client = new OkHttpClient();
+        client.newCall(request)
+                .enqueue(new Callback() {
+                    @Override
+                    public void onFailure(final Call call, IOException e) {
+                        // Error
+
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                // For the example, you can show an error dialog or a toast
+                                // on the main UI thread
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onResponse(Call call, final Response response) throws IOException {
+
+                        String resulting = response.body().string();
+
+                    }//end void
+
+                });
+    }
+
+
+
+    void doGetRequest(String url) throws IOException{
+        Request request = new Request.Builder()
+                .url(url)
+                .build();
+
+        OkHttpClient client = new OkHttpClient();
+        client.newCall(request)
+                .enqueue(new Callback() {
+                    @Override
+                    public void onFailure(final Call call, IOException e) {
+                        // Error
+
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                // For the example, you can show an error dialog or a toast
+                                // on the main UI thread
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onResponse(Call call, final Response response) throws IOException {
+
+
+                        somebits = response.body().string();
+
+
+                        handler2.post(new Runnable() {
+                            @Override
+                            public void run() {
+
+
+                                String[] pieces = somebits.split(Pattern.quote("~"));
+
+
+                                returnshift = pieces[0];
+                                returnshift = returnshift.trim();
+
+                                String getunsettledorders = pieces[1];
+                                getunsettledorders = getunsettledorders.trim();
+                                viewactionorders.setText("View Orders ("+ getunsettledorders + ")" );
+                                setinOrders(getunsettledorders);
+
+                                if(getunsettledorders.equals("0")){
+                                    viewactionorders.setEnabled(false);
+                                }else{
+                                    viewactionorders.setEnabled(true);
+                                }
+
+                                int myNum = 0;
+                                try {
+                                    myNum = Integer.parseInt(returnshift);
+                                } catch(NumberFormatException nfe) {
+                                    System.out.println("Could not parse " + nfe);
+                                }
+
+
+                                System.out.println("shift url  " + myNum);
+                                setState(myNum);
+
+                                if(myNum == 0) {
+                                    viewactionorders.setEnabled(false);
+                                    shiftstate.setText("Off Shift");
+                                    offview.setVisibility(View.VISIBLE);
+                                    shift.setBackgroundColor(Color.RED);
+
+                                }
+
+                                if(myNum == 1) {
+
+                                    System.out.println("shift url  " + myNum);
+                                    shift.setBackgroundColor(GREEN);
+                                    shiftstate.setText("On Shift");
+                                    offview.setVisibility(View.INVISIBLE);
+
+                                }
+
+
+
+                            }
+                        });
+
+
+                    }//end if
+
+
+
+
+                });
+
+    }
+
+
+
     public void Shiftactionset(String cunq, int State){
         String thisdevice = Settings.Secure.getString(this.getContentResolver(),
                 Settings.Secure.ANDROID_ID);
 
         if(State == 0) { //enable
             viewactionorders.setEnabled(true);
+
+            String orderspendin = getinorders();
+            if(orderspendin.equals("0")) {
+                viewactionorders.setEnabled(false);
+            }
+            //if its zero....
+
 
             Intent i = new Intent(this, MyService.class);
             this.startService(i);
@@ -373,6 +591,13 @@ public class Dashboard extends AppCompatActivity {
         this.name = newName;
     }
 
+    public String getinorders() {
+        return orderspending;
+    }
+
+    public void setinOrders(String orderamt) {
+        this.orderspending = orderamt;
+    }
 
     @Override
     public void onResume() {
@@ -466,7 +691,10 @@ public class Dashboard extends AppCompatActivity {
     }
 
 
-
+    @Override
+    public void onBackPressed() {
+        dialog.dismiss();
+    }
 
     @Override
     protected void onPause() {

@@ -20,16 +20,20 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.regex.Pattern;
 
+import okhttp3.Call;
+import okhttp3.Callback;
 import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
+import okhttp3.Response;
 
 public class Vieworders extends AppCompatActivity {
     Button back;
@@ -41,7 +45,7 @@ public class Vieworders extends AppCompatActivity {
     String orderid;
     String sendorderid;
     MediaPlayer player;
-
+    ProgressBar progressBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,6 +60,10 @@ public class Vieworders extends AppCompatActivity {
         cunq = shared.getString("driver", "");
 
         back = (Button)findViewById(R.id.backbtn);
+
+        progressBar = (ProgressBar)findViewById(R.id.pbProgress);
+        progressBar.setVisibility(View.VISIBLE);
+
 
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
@@ -74,10 +82,89 @@ public class Vieworders extends AppCompatActivity {
 
 
 
-        String returnorders = getorders( cunq );
-        createLayoutDynamically(returnorders);
+        //String returnorders = getorders( cunq );
+        //createLayoutDynamically(returnorders);
+
+
+        try {
+            returnorders("https://axcess.ai/barapp/driver_getorders.php?&action=liveorders&driverid="+cunq);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
 
     }
+
+
+
+
+    void returnorders(String url) throws IOException{
+        Request request = new Request.Builder()
+                .url(url)
+                .build();
+
+        OkHttpClient client = new OkHttpClient();
+        client.newCall(request)
+                .enqueue(new Callback() {
+                    @Override
+                    public void onFailure(final Call call, IOException e) {
+                        // Error
+
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                // For the example, you can show an error dialog or a toast
+                                // on the main UI thread
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onResponse(Call call, final Response response) throws IOException {
+
+                        String resulting = response.body().string();
+
+
+                        try {
+
+                            String[] dishout = resulting.split(Pattern.quote("*"));
+                            System.out.println("number tickets: " + Arrays.toString(dishout));
+                            //dialog.dismiss();
+
+                            createLayoutDynamically(resulting);
+
+
+                        } catch(ArrayIndexOutOfBoundsException e) {
+
+                            LinearLayout layout = (LinearLayout) findViewById(R.id.scnf);
+                            layout.setOrientation(LinearLayout.VERTICAL);
+
+                            TextView newtxt = new TextView(getApplicationContext());
+                            newtxt.setText(Html.fromHtml("No orders"));
+                            newtxt.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f);
+                            newtxt.setPadding(0, 0, 0, 20 );
+                            newtxt.setTypeface(null, Typeface.BOLD);
+                            newtxt.setGravity(Gravity.CENTER);
+                            layout.addView(newtxt);
+
+                        }
+
+
+
+
+
+
+
+
+
+                    }//end void
+
+                });
+    }
+
+
+
+
 
 
 
@@ -173,6 +260,12 @@ public class Vieworders extends AppCompatActivity {
 
     private void createLayoutDynamically( String scantext) {
 
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+
+                progressBar.setVisibility(View.INVISIBLE);
+
         LinearLayout layout = (LinearLayout) findViewById(R.id.scnf);
         layout.setOrientation(LinearLayout.VERTICAL);
 
@@ -218,7 +311,7 @@ public class Vieworders extends AppCompatActivity {
         textView.setGravity(Gravity.CENTER);
         */
 
-        TextView newtxt = new TextView(this);
+        TextView newtxt = new TextView(getApplicationContext());
         newtxt.setText(Html.fromHtml(printwforce));
         newtxt.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f);
         newtxt.setPadding(0, 0, 0, 20 );
@@ -242,7 +335,7 @@ public class Vieworders extends AppCompatActivity {
 
            // System.out.println(makebtn + "action listed: " +  printwforce + "col:  " +  imgx );
 
-            TextView panel = new TextView(this);
+            TextView panel = new TextView(getApplicationContext());
             panel.setText("From: "+ company + "\n\n To: Zone " + zone );
             panel.setLayoutParams(Params1);
             //panel.setWidth(200);
@@ -254,7 +347,7 @@ public class Vieworders extends AppCompatActivity {
             panel.setBackgroundColor(getResources().getColor(R.color.gray));
 
 
-             Button btn = new Button(this);
+             Button btn = new Button(getApplicationContext());
             btn.setId(i);
             btn.setTag(orderid);
             final int accept = btn.getId();
@@ -268,7 +361,7 @@ public class Vieworders extends AppCompatActivity {
             layout.addView(btn);
 
 
-            Button btn2 = new Button(this);
+            Button btn2 = new Button(getApplicationContext());
             btn2.setId(idup);
             btn2.setTag(orderid);
             final int decline = btn2.getId();
@@ -402,6 +495,10 @@ public class Vieworders extends AppCompatActivity {
 
 
         }//end make buttons
+
+
+            }
+        });
 
 
     }
