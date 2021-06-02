@@ -116,7 +116,7 @@ public class Dashboard extends AppCompatActivity {
 
         shift = (Button)findViewById(R.id.Startshift);
 
-        llogout = (Button)findViewById(R.id.logout);
+            llogout = (Button)findViewById(R.id.logout);
         viewinorders = (Button)findViewById(R.id.vieworders);
         viewearnings = (Button)findViewById(R.id.viewearnings);
 

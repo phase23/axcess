@@ -152,11 +152,6 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-                     dialog = new SpotsDialog.Builder()
-                            .setMessage("Please Wait")
-                            .setContext(MainActivity.this)
-                            .build();
-                    dialog.show();
 
 
 
@@ -165,6 +160,13 @@ public class MainActivity extends AppCompatActivity {
                         Toast.makeText(getApplicationContext(), "Enter your password", Toast.LENGTH_SHORT).show();
                         return;
                     }
+
+
+                    dialog = new SpotsDialog.Builder()
+                            .setMessage("Please Wait")
+                            .setContext(MainActivity.this)
+                            .build();
+                    dialog.show();
 
                     try {
                         doGetRequest("https://axcess.ai/barapp/driver_driverlogin.php?&driverno=" + thispin);
@@ -230,8 +232,18 @@ public class MainActivity extends AppCompatActivity {
                         cunq = separated[1];
 
                         if(dologin.equals("noluck")){
-                            Toast.makeText(getApplicationContext(), "Your password is incorrect", Toast.LENGTH_LONG).show();
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    // For the example, you can show an error dialog or a toast
+                                    // on the main UI thread
+                                    Toast.makeText(getApplicationContext(), "Your password is incorrect", Toast.LENGTH_LONG).show();
+                                    dialog.dismiss();
+                                }
+                            });
+
                             return;
+
                         }
 
                         if(dologin.equals("sucess")){
