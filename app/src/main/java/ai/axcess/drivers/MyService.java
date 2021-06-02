@@ -5,8 +5,10 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -28,6 +30,7 @@ import androidx.core.content.ContextCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import java.io.IOException;
+import java.util.regex.Pattern;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -40,6 +43,7 @@ import okhttp3.Response;
 public class MyService extends Service {
     Context mContext;
     LocationManager locationManager;
+    public Handler orderhandler;
     public Handler handler;
     public Handler handler2;
     String thedevice;
@@ -47,8 +51,9 @@ public class MyService extends Service {
     String cunq;
     MediaPlayer player;
     boolean isRunning = false;
+    boolean checkOrder = false;
     String responseLocation;
-
+    String outputthis;
     private final int TWENTY_SECONDS = 20000;
     private final int TW0_SECONDS = 2000;
     String stoprider;
@@ -63,7 +68,7 @@ public class MyService extends Service {
     public void onCreate() {
        // Toast.makeText(this, "Service created!", Toast.LENGTH_LONG).show();
 
-
+        getApplicationContext().registerReceiver(broadcastReceiver, new IntentFilter("stopchecks"));
 
         SharedPreferences shared = getSharedPreferences("autoLogin", MODE_PRIVATE);
         SharedPreferences.Editor prefsEditor = shared.edit();
@@ -89,6 +94,18 @@ public class MyService extends Service {
         mContext=this;
 
 
+        orderhandler = new Handler();
+        orderhandler.postDelayed(new Runnable() {
+            public void run() {
+
+
+                checkOrder = true;
+                isneworder(cunq);
+
+                // this method will contain your almost-finished HTTP calls
+                orderhandler.postDelayed(this, TWENTY_SECONDS);
+            }
+        }, TWENTY_SECONDS);
 
 
         locationManager=(LocationManager) mContext.getSystemService(Context.LOCATION_SERVICE);
@@ -119,18 +136,7 @@ public class MyService extends Service {
 
 
 
-        handler = new Handler();
-        handler.postDelayed(new Runnable() {
-            public void run() {
 
-
-
-                isneworder(cunq);
-
-                // this method will contain your almost-finished HTTP calls
-                handler.postDelayed(this, TWENTY_SECONDS);
-            }
-        }, TWENTY_SECONDS);
 
 
 /*
@@ -192,6 +198,8 @@ public class MyService extends Service {
 
 
     };
+
+
 
     public void isLocationEnabled() {
 
@@ -382,16 +390,36 @@ public class MyService extends Service {
 
 
 
+    private BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String send = intent.getStringExtra("send");
+            //Log.d(TAG, "Data received is : " +  intent.getStringExtra("message"));
+            //Toast.makeText(getApplicationContext(), "We got off." + send, Toast.LENGTH_LONG).show();
+
+            //check if its running
+                Log.i("check we in..","in");
+                if(checkOrder) {
+                   // Log.i("check order pass..","in");
+                    orderhandler.removeCallbacksAndMessages(null);
+                    checkOrder = false;
+                }
 
 
 
 
+            //Make a Notification here
+        }
+    };
 
 
+    public void onResume() {
+        getApplicationContext().registerReceiver(broadcastReceiver, new IntentFilter("stopchecks"));
+    }
 
-
-
-
+    protected void onPause() {
+        getApplicationContext().unregisterReceiver(broadcastReceiver);
+    }
 
 
 
@@ -424,7 +452,16 @@ public class MyService extends Service {
             Log.i("respBody:main",responseLocation);
             Log.i("MSG",resp);
 
-            String outputthis = responseLocation.trim();
+            String somebits = responseLocation.trim();
+
+            String[] pieces = somebits.split(Pattern.quote("~"));
+            outputthis = pieces[0];
+            Log.i("check new order",outputthis);
+
+            String shiftstat = pieces[1].trim();
+            Log.i("check shiftstat",shiftstat);
+
+
 
             int myNum = 0;
             try {
@@ -476,6 +513,8 @@ public class MyService extends Service {
 
 
     }//emd
+
+
 
 
 

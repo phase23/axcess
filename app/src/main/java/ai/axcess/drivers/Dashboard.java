@@ -71,6 +71,7 @@ public class Dashboard extends AppCompatActivity {
     String returnshift;
     String somebits;
     String orderspending;
+    String getmsg;
 
 
     @Override
@@ -86,6 +87,12 @@ public class Dashboard extends AppCompatActivity {
 
         SharedPreferences shared = getSharedPreferences("autoLogin", MODE_PRIVATE);
         SharedPreferences.Editor prefsEditor = shared.edit();
+
+
+
+
+
+        cunq = shared.getString("driver", "");
         int j = shared.getInt("key", 0);
 
 
@@ -195,14 +202,33 @@ public class Dashboard extends AppCompatActivity {
             public void onClick(View v) {
                 shared.edit().clear().commit();
 
+                getmsg = "Turning off";
+                Intent offintent = new Intent("stopchecks");
+                offintent.putExtra("send", "off");
+                offintent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                getApplicationContext().sendBroadcast(offintent);
+
+                dialog = new SpotsDialog.Builder()
+                        .setMessage("Please Wait")
+                        .setContext(Dashboard.this)
+                        .build();
+                dialog.show();
+
+                handler = new Handler();
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run(){
+
                 Shiftactionset(cunq,1);
-
-                //Intent i = new Intent(this, MyService.class);
                 stopService(new Intent(Dashboard.this, MyService.class));
-
                 Intent intent = new Intent(Dashboard.this, MainActivity.class);
-
                 startActivity(intent);
+
+                        dialog.dismiss();
+
+                    }
+                }, 1000);
+
 
             }
 
@@ -247,11 +273,46 @@ public class Dashboard extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
+            shift.setEnabled(false);
+
+                int getstateback = getState();
+
+                if(getstateback == 1){
+                    getmsg = "Turning off";
+                    Intent intent = new Intent("stopchecks");
+                    intent.putExtra("send", "off");
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    getApplicationContext().sendBroadcast(intent);
+
+
+                }else{
+                     getmsg = "Turning on";
+                }
+
+                dialog = new SpotsDialog.Builder()
+                        .setMessage(getmsg)
+                        .setContext(Dashboard.this)
+                        .build();
+                dialog.show();
+
+                handler = new Handler();
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run(){
+
+
+
 
                         shiftstate.setText("Please wait..");
                         int returnstate = getState();
                         Shiftactionset(cunq, returnstate);
                        checklocationstatus();
+
+                        dialog.dismiss();
+                        shift.setEnabled(true);
+                    }
+                }, 1000);
+
 
             }
 
@@ -259,6 +320,9 @@ public class Dashboard extends AppCompatActivity {
 
 
     }
+
+
+
 
     public void gettershift(String cunq){
 
@@ -497,6 +561,7 @@ public class Dashboard extends AppCompatActivity {
 
             if(responseLocation.equals("updated")){
                 setState(newstate);
+
 
                 if(newstate == 0) {
                     shift.setBackgroundColor(RED);
