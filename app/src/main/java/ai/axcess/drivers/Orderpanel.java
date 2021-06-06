@@ -16,6 +16,7 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.StrictMode;
 import android.provider.Settings;
 import android.text.Html;
 import android.util.Log;
@@ -58,6 +59,7 @@ public class Orderpanel extends AppCompatActivity {
     String driver_accept;
     ProgressBar progressBar;
     String customerphonenumber;
+    String locationto;
     String passthephone;
     String ordernumb;
     AlertDialog dialog;
@@ -72,6 +74,16 @@ public class Orderpanel extends AppCompatActivity {
 
         SharedPreferences shared = getSharedPreferences("autoLogin", MODE_PRIVATE);
         SharedPreferences.Editor prefsEditor = shared.edit();
+
+        int SDK_INT = android.os.Build.VERSION.SDK_INT;
+        if (SDK_INT > 8)
+        {
+            StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder()
+                    .permitAll().build();
+            StrictMode.setThreadPolicy(policy);
+            //your codes here
+
+        }
 /*
         dialog = new SpotsDialog.Builder()
                 .setMessage("Now loading...")
@@ -393,15 +405,16 @@ public class Orderpanel extends AppCompatActivity {
             zone = sbtns[5];
             customerphonenumber = sbtns[6];
             ordernumb = sbtns[7];
+            locationto = sbtns[8];
 
             // System.out.println(makebtn + "action listed: " +  printwforce + "col:  " +  imgx );
 
             TextView panel = new TextView(getApplicationContext());
-            panel.setText("From: "+ company + "\nTo: Zone " + zone + "\nOrder No:" +  ordernumb + "\n\n" );
+            panel.setText("From: "+ company + "\nTo: " + locationto + "\nOrder No:" +  ordernumb + "\n\n" );
 
             if(is_pickedup.equals("1")) {
 
-                panel.setText("From: "+ company + "\nTo: Zone " + zone + "\nOrder No:" +  ordernumb + " (Order picked-up)\n\n" );
+                panel.setText("From: "+ company + "\nTo: " + locationto + "\nOrder No:" +  ordernumb + " (Order picked-up)\n\n" );
             }
 
             panel.setLayoutParams(Params1);
@@ -493,7 +506,7 @@ public class Orderpanel extends AppCompatActivity {
             if(is_pickedup.equals("0")) {
                 Button btn = new Button(getApplicationContext());
                 btn.setId(i);
-                btn.setTag(orderid + "~" + company + "~" + zone + '~' + customerphonenumber);
+                btn.setTag(orderid + "~" + company + "~" + locationto + '~' + customerphonenumber);
                 final int routetopickup = btn.getId();
                 btn.setText(" Route to Pickup  ");
                 params.width = 300;
@@ -548,7 +561,7 @@ public class Orderpanel extends AppCompatActivity {
 
             Button btn2 = new Button(getApplicationContext());
             btn2.setId(idup);
-            btn2.setTag(orderid + "~" + company + "~" + zone + '~' + customerphonenumber);
+            btn2.setTag(orderid + "~" + company + "~" + locationto + '~' + customerphonenumber);
             final int routetodrop = btn2.getId();
             btn2.setText(" Route to Drop off " );
             btn2.setTextColor(getResources().getColor(R.color.black));
@@ -602,7 +615,7 @@ public class Orderpanel extends AppCompatActivity {
             if(is_pickedup.equals("1")) {
                 Button btn3 = new Button(getApplicationContext());
                 btn3.setId(idup2);
-                btn3.setTag(orderid + "~" + company + "~" + zone + '~' + customerphonenumber);
+                btn3.setTag(orderid + "~" + company + "~" + locationto + '~' + customerphonenumber);
                 final int dropoff = btn3.getId();
                 btn3.setText(" Order Completed " );
                 btn3.setTextSize(25);
@@ -629,7 +642,7 @@ public class Orderpanel extends AppCompatActivity {
                         AlertDialog.Builder builder = new AlertDialog.Builder(Orderpanel.this);
                         builder.setTitle("Confirm");
 
-                        builder.setMessage(Html.fromHtml(    " Confirm  for completion for <br><br>" + outcompany + " to zone "+ outzone));
+                        builder.setMessage(Html.fromHtml(    " Confirm  for completion for <br><br>" + outcompany + " to  "+ outzone));
 
                         builder.setPositiveButton("YES", new DialogInterface.OnClickListener() {
 

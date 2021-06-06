@@ -14,12 +14,6 @@
     android:shrinkColumns="*"
     android:stretchColumns="*">
 
-
-
-
-
-
-
     <TableRow
         android:id="@+id/tableRow1"
         android:layout_width="match_parent"

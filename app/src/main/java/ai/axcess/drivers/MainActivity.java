@@ -76,7 +76,15 @@ public class MainActivity extends AppCompatActivity {
         String thisdevice = Settings.Secure.getString(this.getContentResolver(),
                 Settings.Secure.ANDROID_ID);
 
+        int SDK_INT = android.os.Build.VERSION.SDK_INT;
+        if (SDK_INT > 8)
+        {
+            StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder()
+                    .permitAll().build();
+            StrictMode.setThreadPolicy(policy);
+            //your codes here
 
+        }
 
 
 
@@ -134,8 +142,6 @@ public class MainActivity extends AppCompatActivity {
 
             }else {
 
-            StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-            StrictMode.setThreadPolicy(policy);
 
             sharedpreferences = getSharedPreferences("autoLogin", Context.MODE_PRIVATE);
             int j = sharedpreferences.getInt("key", 0);

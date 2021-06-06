@@ -19,6 +19,7 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.StrictMode;
 import android.provider.Settings;
 import android.text.Html;
 import android.util.Log;
@@ -119,6 +120,17 @@ public class Pickup extends FragmentActivity implements OnMapReadyCallback,Googl
 
         LinearLayout ll = (LinearLayout) findViewById(R.id.topbar);
         ll.setAlpha(0.5f);
+
+
+        int SDK_INT = android.os.Build.VERSION.SDK_INT;
+        if (SDK_INT > 8)
+        {
+            StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder()
+                    .permitAll().build();
+            StrictMode.setThreadPolicy(policy);
+            //your codes here
+
+        }
 
 
         fname = shared.getString("sendfname", "");

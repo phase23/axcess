@@ -23,6 +23,7 @@ import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.StrictMode;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
@@ -81,6 +82,15 @@ public class Dashboard extends AppCompatActivity {
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
 
+        int SDK_INT = android.os.Build.VERSION.SDK_INT;
+        if (SDK_INT > 8)
+        {
+            StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder()
+                    .permitAll().build();
+            StrictMode.setThreadPolicy(policy);
+            //your codes here
+
+        }
 
 
 
@@ -696,6 +706,9 @@ public class Dashboard extends AppCompatActivity {
         public void onReceive(Context context, Intent intent) {
             // Extract data included in the Intent
             String myout = intent.getStringExtra("send"); // -1 is going to be used as the default value
+            Log.i("url out",myout);
+
+
             if(myout.equals("redbtn")) {
                 viewinorders.setBackgroundColor(RED);
                 viewinorders.setVisibility(View.VISIBLE);
@@ -773,6 +786,14 @@ public class Dashboard extends AppCompatActivity {
 
     }
 
+
+
+    @Override
+    public void onRestart() {
+        super.onRestart();
+        finish();
+        startActivity(getIntent());
+    }
 
     @Override
     public void onBackPressed() {

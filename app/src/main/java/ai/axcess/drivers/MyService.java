@@ -349,6 +349,7 @@ public class MyService extends Service {
                                 if(player != null){
                                     player.stop();
                                 }
+
                                 if(isRunning) {
                                     handler2.removeCallbacksAndMessages(null);
                                     isRunning = false;
@@ -405,10 +406,19 @@ public class MyService extends Service {
                     checkOrder = false;
                 }
 
+            if(player != null){
+                player.stop();
+            }
+
+
+            if(isRunning) {
+                handler2.removeCallbacksAndMessages(null);
+                isRunning = false;
+            }
 
 
 
-            //Make a Notification here
+
         }
     };
 
@@ -484,7 +494,7 @@ public class MyService extends Service {
 
 
                 if (isRunning) {
-
+                    sendalerttoActivity("redbtn");
                     } else {
 
                         sendalerttoActivity("redbtn");
@@ -516,7 +526,10 @@ public class MyService extends Service {
 
 
 
-
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        return START_STICKY;
+    }
 
     public void startplayer(){
 

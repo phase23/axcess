@@ -44,6 +44,7 @@ public class Vieworders extends AppCompatActivity {
     String zone;
     String orderid;
     String sendorderid;
+    String locationto;
     MediaPlayer player;
     ProgressBar progressBar;
 
@@ -332,11 +333,11 @@ public class Vieworders extends AppCompatActivity {
             company = sbtns[1];
             locationid = sbtns[2];
             zone = sbtns[5];
-
+            locationto = sbtns[6];
            // System.out.println(makebtn + "action listed: " +  printwforce + "col:  " +  imgx );
 
             TextView panel = new TextView(getApplicationContext());
-            panel.setText("From: "+ company + "\n\n To: Zone " + zone );
+            panel.setText("From: "+ company + "\n\n To: " + locationto );
             panel.setLayoutParams(Params1);
             //panel.setWidth(200);
             panel.setPadding(20, 5, 20, 5 );
@@ -400,7 +401,7 @@ public class Vieworders extends AppCompatActivity {
                     AlertDialog.Builder builder = new AlertDialog.Builder(Vieworders.this);
                     builder.setTitle("Confirm");
 
-                    builder.setMessage(Html.fromHtml("Confirm  for delivery for <br><br>" + company + " to zone "+ zone));
+                    builder.setMessage(Html.fromHtml("Confirm  for delivery for <br><br>" + company + " to "+ locationto));
 
                     builder.setPositiveButton("YES", new DialogInterface.OnClickListener() {
 
@@ -411,6 +412,11 @@ public class Vieworders extends AppCompatActivity {
                             // Do nothing, but close the dialog
                             dialog.dismiss();
                             System.out.println("action numbers tag "+ tagname);
+
+                            Intent offintent = new Intent("stopchecks");
+                            offintent.putExtra("send", "off");
+                            offintent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                            getApplicationContext().sendBroadcast(offintent);
 
                             Intent intent = new Intent(Vieworders.this, Orderpanel.class);
                             startActivity(intent);
