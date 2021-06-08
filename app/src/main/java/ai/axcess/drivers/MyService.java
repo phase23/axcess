@@ -497,13 +497,13 @@ public class MyService extends Service {
                     sendalerttoActivity("redbtn");
                     } else {
 
-                        sendalerttoActivity("redbtn");
+
                         handler2 = new Handler();
                         handler2.postDelayed(new Runnable() {
                             public void run() {
                                 isRunning = true;
                                 startplayer();
-
+                                sendalerttoActivity("redbtn");
                                 handler2.postDelayed(this, TW0_SECONDS);
                                 }
                             }, TW0_SECONDS);
