@@ -64,7 +64,7 @@ public class MainActivity extends AppCompatActivity {
     private String name;
     OkHttpClient client;
     Request request;
-
+    String returndevice;
     //BroadcastReceiver  messageReceiver;
 
 
@@ -143,6 +143,16 @@ public class MainActivity extends AppCompatActivity {
             }else {
 
 
+            returndevice = isregistered();
+            returndevice = returndevice.trim();
+
+            if (returndevice.equals("not found")) {
+                Intent devicesetup = new Intent(MainActivity.this, Register.class);
+                startActivity(devicesetup);
+            }
+
+
+
             sharedpreferences = getSharedPreferences("autoLogin", Context.MODE_PRIVATE);
             int j = sharedpreferences.getInt("key", 0);
             if(j > 0){
@@ -167,7 +177,7 @@ public class MainActivity extends AppCompatActivity {
                         return;
                     }
 
-
+                    Log.i("[print]","blonk");
                     dialog = new SpotsDialog.Builder()
                             .setMessage("Please Wait")
                             .setContext(MainActivity.this)
@@ -175,6 +185,7 @@ public class MainActivity extends AppCompatActivity {
                     dialog.show();
 
                     try {
+                        Log.i("[print]","https://axcess.ai/barapp/driver_driverlogin.php?&driverno=" + thispin);
                         doGetRequest("https://axcess.ai/barapp/driver_driverlogin.php?&driverno=" + thispin);
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -217,6 +228,7 @@ public class MainActivity extends AppCompatActivity {
                             public void run() {
                                 // For the example, you can show an error dialog or a toast
                                 // on the main UI thread
+                                Log.i("[print]","error" + e);
                             }
                         });
                     }
@@ -270,7 +282,7 @@ public class MainActivity extends AppCompatActivity {
                             intent.putExtra("sendfname",fname);
                             startActivity(intent);
 
-                            dialog.dismiss();
+                           dialog.dismiss();
 
                         }
 
@@ -294,6 +306,44 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+
+
+
+    public String isregistered() {
+
+
+        String thisdevice = Settings.Secure.getString(this.getContentResolver(),
+                Settings.Secure.ANDROID_ID);
+
+        String url = "https://axcess.ai/barapp/driver_devicesetup.php?action=checkdevice&token="+thisdevice;
+        Log.i("action url",url);
+        OkHttpClient client = new OkHttpClient();
+        RequestBody requestBody = new MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
+                .addFormDataPart("deviceid",thisdevice )
+                .build();
+        Request request = new Request.Builder()
+                .url(url)//your webservice url
+                .post(requestBody)
+                .build();
+        try {
+            //String responseBody;
+            okhttp3.Response response = client.newCall(request).execute();
+            // Response response = client.newCall(request).execute();
+            if (response.isSuccessful()){
+                Log.i("SUCC",""+response.message());
+            }
+            String resp = response.message();
+            responseLocation =  response.body().string();
+            Log.i("respBody:main",responseLocation);
+            Log.i("MSG",resp);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return responseLocation;
+
+    }//emd
 
     public String postLogin( String thispin ) {
 
@@ -336,7 +386,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        dialog.dismiss();
+       // dialog.dismiss();
     }
 
 

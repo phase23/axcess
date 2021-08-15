@@ -299,6 +299,7 @@ public class Dashboard extends AppCompatActivity {
                      getmsg = "Turning on";
                 }
 
+
                 dialog = new SpotsDialog.Builder()
                         .setMessage(getmsg)
                         .setContext(Dashboard.this)
@@ -492,6 +493,10 @@ public class Dashboard extends AppCompatActivity {
                                 }
 
                                 if(myNum == 1) {
+
+
+                                    Intent i = new Intent(getApplicationContext(), MyService.class);
+                                    getApplicationContext().startService(i);
 
                                     System.out.println("shift url  " + myNum);
                                     shift.setBackgroundColor(GREEN);
@@ -698,6 +703,12 @@ public class Dashboard extends AppCompatActivity {
         // This registers messageReceiver to receive messages.
         LocalBroadcastManager.getInstance(this)
                 .registerReceiver(messageReceiver, new IntentFilter("my-message"));
+
+
+        gettershift(cunq);
+        checklocationstatus();
+
+
     }
 
     // Handling the received Intents for the "my-integer" event

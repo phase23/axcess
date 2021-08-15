@@ -88,6 +88,8 @@ public class Vieworders extends AppCompatActivity {
 
 
         try {
+
+            Log.i("url","https://axcess.ai/barapp/driver_getorders.php?&action=liveorders&driverid="+cunq);
             returnorders("https://axcess.ai/barapp/driver_getorders.php?&action=liveorders&driverid="+cunq);
         } catch (IOException e) {
             e.printStackTrace();

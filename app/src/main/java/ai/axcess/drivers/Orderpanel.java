@@ -62,6 +62,7 @@ public class Orderpanel extends AppCompatActivity {
     ProgressBar progressBar;
     String customerphonenumber;
     String locationto;
+    String locationnear;
     String passthephone;
     String ordernumb;
     AlertDialog dialog;
@@ -351,6 +352,8 @@ public class Orderpanel extends AppCompatActivity {
 
             LinearLayout.LayoutParams Params1 = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,180);
             Params1.setMargins(0, 0, 0, 0);
+                Params1.height = 250;
+
 
             LinearLayout.LayoutParams pickupbtn = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,180);
             pickupbtn.setMargins(0, 0, 0, 10);
@@ -408,23 +411,25 @@ public class Orderpanel extends AppCompatActivity {
             customerphonenumber = sbtns[6];
             ordernumb = sbtns[7];
             locationto = sbtns[8];
-
+            locationnear = sbtns[9];
             // System.out.println(makebtn + "action listed: " +  printwforce + "col:  " +  imgx );
 
             TextView panel = new TextView(getApplicationContext());
-            panel.setText("From: "+ company + "\nTo: " + locationto + "\nOrder No:" +  ordernumb + "\n\n" );
+            panel.setText("From: "+ company + "\nTo: " + locationto + "\nNear:" + locationnear +  "\nOrder No:" +  ordernumb + "\n\n" );
 
             if(is_pickedup.equals("1")) {
 
-                panel.setText("From: "+ company + "\nTo: " + locationto + "\nOrder No:" +  ordernumb + " (Order picked-up)\n\n" );
+                panel.setText("From: "+ company + "\nTo: " + locationto +  "\nNear:" + locationnear + "\nOrder No:" +  ordernumb + " (Order picked-up)\n\n" );
             }
 
             panel.setLayoutParams(Params1);
             //panel.setWidth(200);
-            panel.setPadding(20, 5, 20, 15 );
+            panel.setPadding(20, 5, 20, 25 );
             panel.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18f);
             panel.setTypeface(null, Typeface.BOLD);
             panel.setGravity(Gravity.LEFT);
+            panel.setHeight(250);
+            panel.setLayoutParams(Params1);
             panel.setTextColor(getResources().getColor(R.color.black));
             layout.addView(panel);
             panel.setBackgroundColor(getResources().getColor(R.color.gray));
