@@ -31,6 +31,9 @@ import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+
 import java.io.IOException;
 import java.util.regex.Pattern;
 
@@ -124,6 +127,7 @@ public class MyService extends Service {
         //Toast.makeText(this, "Service started by user.", Toast.LENGTH_LONG).show();
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
+
      /*
         // Bundle bundle = intent.getExtras();
 
@@ -173,9 +177,19 @@ public class MyService extends Service {
             String msg="New Latitude: "+latitude + "New Longitude: "+longitude;
             //Toast.makeText(mContext,msg,Toast.LENGTH_LONG).show();
             Log.d("Changed", " Cordin :" + msg);
-            sendlocation(latitude , longitude);
+           // sendlocation(latitude , longitude);
             sendnewlocationtomaps( latitude, longitude, bearing);
             //Toast.makeText(getApplicationContext(), "Location changed", Toast.LENGTH_LONG).show();
+
+            FirebaseDatabase database = FirebaseDatabase.getInstance("https://axcessdrivers-default-rtdb.firebaseio.com/");
+
+            String thisdevice = Settings.Secure.getString(getContentResolver(),
+                    Settings.Secure.ANDROID_ID);
+
+            DatabaseReference newdriver = database.getReference(thisdevice);
+            newdriver.child("latitude").setValue(latitude);
+            newdriver.child("longitude").setValue(longitude);
+
         }
 
 

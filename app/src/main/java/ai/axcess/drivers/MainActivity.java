@@ -65,6 +65,8 @@ public class MainActivity extends AppCompatActivity {
     OkHttpClient client;
     Request request;
     String returndevice;
+    public String globaldevice;
+
     //BroadcastReceiver  messageReceiver;
 
 
@@ -76,15 +78,25 @@ public class MainActivity extends AppCompatActivity {
         String thisdevice = Settings.Secure.getString(this.getContentResolver(),
                 Settings.Secure.ANDROID_ID);
 
+        String globaldevice = Settings.Secure.getString(this.getContentResolver(),
+                Settings.Secure.ANDROID_ID);
+
+
+
         int SDK_INT = android.os.Build.VERSION.SDK_INT;
         if (SDK_INT > 8)
         {
             StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder()
                     .permitAll().build();
+
+
             StrictMode.setThreadPolicy(policy);
             //your codes here
 
         }
+
+
+
 
 
 
@@ -185,8 +197,12 @@ public class MainActivity extends AppCompatActivity {
                     dialog.show();
 
                     try {
-                        Log.i("[print]","https://axcess.ai/barapp/driver_driverlogin.php?&driverno=" + thispin);
-                        doGetRequest("https://axcess.ai/barapp/driver_driverlogin.php?&driverno=" + thispin);
+
+
+
+
+                        Log.i("[print]","https://axcess.ai/barapp/driver_driverlogin.php?&driverno=" + thispin + "&token=" + globaldevice);
+                        doGetRequest("https://axcess.ai/barapp/driver_driverlogin.php?&driverno=" + thispin + "&token=" + globaldevice);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }

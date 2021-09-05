@@ -722,6 +722,8 @@ public class Orderpanel extends AppCompatActivity {
 
 
         try {
+
+            System.out.println("https://axcess.ai/barapp/driver_route.php?&action=" + doaction + "&driverid="+cunq + "&orderid=" + orderid);
             returnroute("https://axcess.ai/barapp/driver_route.php?&action=" + doaction + "&driverid="+cunq + "&orderid=" + orderid);
 
         } catch (IOException e) {

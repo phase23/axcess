@@ -1,9 +1,11 @@
 package ai.axcess.drivers;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
+import android.Manifest;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
@@ -14,12 +16,14 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
+import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -31,6 +35,12 @@ import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.io.IOException;
 import java.util.regex.Pattern;
@@ -44,6 +54,7 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
+import static android.content.ContentValues.TAG;
 import static android.graphics.Color.GREEN;
 import static android.graphics.Color.RED;
 import static android.graphics.Color.blue;
@@ -58,6 +69,7 @@ public class Dashboard extends AppCompatActivity {
     Button shift;
     Button viewinorders;
     Button viewearnings;
+    Button missedjobs;
     Button viewactionorders;
     AlertDialog dialog;
     Button llogout;
@@ -73,6 +85,10 @@ public class Dashboard extends AppCompatActivity {
     String somebits;
     String orderspending;
     String getmsg;
+    private static final int MY_COARSE_REQUEST_CODE = 102;
+    private static final int MY_FINE_REQUEST_CODE = 103;
+    private static final int PHONE_REQUEST_CODE = 104;
+
 
 
     @Override
@@ -98,6 +114,30 @@ public class Dashboard extends AppCompatActivity {
         SharedPreferences shared = getSharedPreferences("autoLogin", MODE_PRIVATE);
         SharedPreferences.Editor prefsEditor = shared.edit();
 
+
+        String thisdevice = Settings.Secure.getString(this.getContentResolver(),
+                Settings.Secure.ANDROID_ID);
+
+        FirebaseDatabase database = FirebaseDatabase.getInstance("https://axcessdrivers-default-rtdb.firebaseio.com/");
+        DatabaseReference newdriver = database.getReference(thisdevice); // yourwebisteurl/rootNode if it exist otherwise don't pass any string to it.
+        // Read from the database
+        newdriver.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                // This method is called once with the initial value and again
+                // whenever data at this location is updated.
+                String value = dataSnapshot.child("status").getValue(String.class);
+                //boolean isSeen = ds.child("isSeen").getValue(Boolean.class);
+                //Log.d(TAG, "Value is: " + value);
+                Toast.makeText(getApplicationContext(), "Value is:" + value, Toast.LENGTH_LONG).show();
+            }
+
+            @Override
+            public void onCancelled(DatabaseError error) {
+                // Failed to read value
+                Log.w(TAG, "AxcessEats Welcome.", error.toException());
+            }
+        });
 
 
 
@@ -129,6 +169,7 @@ public class Dashboard extends AppCompatActivity {
             llogout = (Button)findViewById(R.id.logout);
         viewinorders = (Button)findViewById(R.id.vieworders);
         viewearnings = (Button)findViewById(R.id.viewearnings);
+        missedjobs = (Button)findViewById(R.id.missedcalls);
 
         viewactionorders = (Button)findViewById(R.id.actionorders);
 
@@ -144,6 +185,37 @@ public class Dashboard extends AppCompatActivity {
         gettershift(cunq);
         checklocationstatus();
 
+
+
+
+        missedjobs.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                dialog = new SpotsDialog.Builder()
+                        .setMessage("Please Wait")
+                        .setContext(Dashboard.this)
+                        .build();
+                dialog.show();
+
+
+
+                handler = new Handler();
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run(){
+
+
+                        Intent intent = new Intent(Dashboard.this, Missedjobs.class);
+                        startActivity(intent);
+                        dialog.dismiss();
+
+
+                    }
+                }, 1000);
+
+            }
+        });
 
 
 
@@ -328,6 +400,61 @@ public class Dashboard extends AppCompatActivity {
             }
 
         });
+
+
+
+       // if (Build.VERSION.SDK_INT >= 23) {
+
+        /*
+        if (checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION ) != PackageManager.PERMISSION_GRANTED || checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION ) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, MY_COARSE_REQUEST_CODE);
+        }
+*/
+        if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION ) != PackageManager.PERMISSION_GRANTED) {
+           // Toast.makeText(getApplicationContext(), "fine access not granted ", Toast.LENGTH_LONG).show();
+            //requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION }, MY_FINE_REQUEST_CODE);
+        }
+
+
+
+
+
+
+
+
+           // if (checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION ) != PackageManager.PERMISSION_GRANTED  ) {
+                if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION ) != PackageManager.PERMISSION_GRANTED) {
+
+
+                    android.app.AlertDialog.Builder dialog = new AlertDialog.Builder(Dashboard.this);
+            dialog.setCancelable(false);
+            dialog.setTitle("Disclaimer");
+            dialog.setMessage(" This app collects location data in the background to enable driver location even when the app is closed or not in use.");
+            dialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int id) {
+
+                   // requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION }, MY_COARSE_REQUEST_CODE);
+                    requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION }, MY_FINE_REQUEST_CODE);
+
+
+                }
+            })
+                    .setNegativeButton("", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            //Action for "Cancel".
+                        }
+
+                    });
+            final AlertDialog alert = dialog.create();
+            alert.show();
+
+
+
+
+            }
+
 
 
     }
@@ -743,7 +870,7 @@ public class Dashboard extends AppCompatActivity {
 
 
                 new Helpers(context).checklocationstatus();
-                Toast.makeText(getApplicationContext(), "GPS changed ", Toast.LENGTH_LONG).show();
+                  Toast.makeText(getApplicationContext(), "GPS changed ", Toast.LENGTH_LONG).show();
             }
         }
     };
@@ -771,18 +898,21 @@ public class Dashboard extends AppCompatActivity {
 
             android.app.AlertDialog.Builder dialog = new AlertDialog.Builder(Dashboard.this);
             dialog.setCancelable(false);
-            dialog.setTitle("GPS STATUS");
-            dialog.setMessage("Your GPS is not enabled");
-            dialog.setPositiveButton("Start GPS", new DialogInterface.OnClickListener() {
+            dialog.setTitle("Location required");
+            dialog.setMessage("Turn on your location on the phone to receive job alerts");
+            dialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int id) {
-                    //getApplication().startActivity(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS));
+                   // getApplication().startActivity(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS));
                     Intent nointernet = new Intent(Dashboard.this, Startgps.class);
                     startActivity(nointernet);
 
+
+
+
                 }
             })
-                    .setNegativeButton("No ", new DialogInterface.OnClickListener() {
+                    .setNegativeButton("No", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             //Action for "Cancel".
@@ -818,6 +948,43 @@ public class Dashboard extends AppCompatActivity {
         super.onPause();
     }
 
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+       /*
+        if (requestCode == MY_COARSE_REQUEST_CODE) {
+            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(this, "Location permission granted", Toast.LENGTH_LONG).show();
+            } else {
+                Toast.makeText(this, "Location permission denied", Toast.LENGTH_LONG).show();
+                Intent nopermission = new Intent(Dashboard.this, Startgps.class);
+                startActivity(nopermission);
+
+            }
+        }
+        */
+
+        if (requestCode == MY_FINE_REQUEST_CODE) {
+            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(this, "Location permission granted", Toast.LENGTH_LONG).show();
+            } else {
+                Toast.makeText(this, "Location permission denied", Toast.LENGTH_LONG).show();
+                Intent nopermission = new Intent(Dashboard.this, Startgps.class);
+                startActivity(nopermission);
+
+            }
+
+
+        }
+
+
+
+
+
+
+    }
 
 
 

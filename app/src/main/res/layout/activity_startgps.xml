@@ -17,10 +17,9 @@
         android:textStyle="bold"
         app:layout_constraintBottom_toTopOf="@+id/relaunch"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.497"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.55" />
+        app:layout_constraintVertical_bias="0.318" />
 
     <Button
         android:id="@+id/relaunch"
@@ -32,6 +31,29 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.499"
         app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
+        android:id="@+id/textView7"
+        android:layout_width="341dp"
+        android:layout_height="59dp"
+        android:gravity="center"
+        android:text="AxcessEats uses your location and Google Maps to direct you to your order pickup and dropoff points with pin-point accuracy"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.373" />
+
+    <TextView
+        android:id="@+id/textView8"
+        android:layout_width="339dp"
+        android:layout_height="91dp"
+        android:text='This app collects location data in the background to enable driver location even when the app is closed or not in use.'
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.54" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
