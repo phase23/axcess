@@ -21,6 +21,8 @@ import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.location.LocationManager;
+import android.media.AudioManager;
+import android.media.MediaPlayer;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Build;
@@ -36,6 +38,9 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.FirebaseError;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -85,11 +90,13 @@ public class Dashboard extends AppCompatActivity {
     String somebits;
     String orderspending;
     String getmsg;
+    MediaPlayer player;
+    public Handler handler3;
     private static final int MY_COARSE_REQUEST_CODE = 102;
     private static final int MY_FINE_REQUEST_CODE = 103;
     private static final int PHONE_REQUEST_CODE = 104;
-
-
+    private final int ONE_SECONDS = 1000;
+    boolean isRunning = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -109,7 +116,8 @@ public class Dashboard extends AppCompatActivity {
         }
 
 
-
+        AudioManager am =
+                (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 
         SharedPreferences shared = getSharedPreferences("autoLogin", MODE_PRIVATE);
         SharedPreferences.Editor prefsEditor = shared.edit();
@@ -120,16 +128,107 @@ public class Dashboard extends AppCompatActivity {
 
         FirebaseDatabase database = FirebaseDatabase.getInstance("https://axcessdrivers-default-rtdb.firebaseio.com/");
         DatabaseReference newdriver = database.getReference(thisdevice); // yourwebisteurl/rootNode if it exist otherwise don't pass any string to it.
+
+        newdriver.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot snapshot) {
+                if (snapshot.hasChild("status")) {
+                    // Exist! Do whatever.
+                } else {
+                    // Don't exist! Do something.
+                    newdriver.child("latitude").setValue("18.205397742382385");
+                    newdriver.child("longitude").setValue("-63.062720587183264");
+                    newdriver.child("status").setValue("waiting");
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError error) {
+                // Failed, how to handle?
+
+            }
+
+        });
+
+
+        newdriver.child("status").get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DataSnapshot> task) {
+                if (!task.isSuccessful()) {
+                    Log.e("firebase", "Error getting data", task.getException());
+                }
+                else {
+                    Log.d("firebase", String.valueOf(task.getResult().getValue()));
+                   // Toast.makeText(getApplicationContext(), "status : " + String.valueOf(task.getResult().getValue()), Toast.LENGTH_LONG).show();
+
+                    String thisstatus = String.valueOf(task.getResult().getValue());
+
+                    if(thisstatus.equals("alert")) {
+                        viewinorders.setBackgroundColor(RED);
+                        viewinorders.setVisibility(View.VISIBLE);
+
+                    }
+
+                }
+            }
+        });
+
+
         // Read from the database
         newdriver.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 // This method is called once with the initial value and again
                 // whenever data at this location is updated.
-                String value = dataSnapshot.child("status").getValue(String.class);
+                //Double value = dataSnapshot.child("latitude").getValue(Double.class);
+                String alert = dataSnapshot.child("status").getValue(String.class);
                 //boolean isSeen = ds.child("isSeen").getValue(Boolean.class);
                 //Log.d(TAG, "Value is: " + value);
-                Toast.makeText(getApplicationContext(), "Value is:" + value, Toast.LENGTH_LONG).show();
+               // Toast.makeText(getApplicationContext(), "Value is:" + value + " Alert: " + alert, Toast.LENGTH_LONG).show();
+                //Toast.makeText(getApplicationContext(), "changed : " + value, Toast.LENGTH_LONG).show();
+
+                if(alert.equals("alert")){
+                if(isRunning) {
+
+                   // Toast.makeText(getApplicationContext(), "Runing already Alert: " + alert, Toast.LENGTH_LONG).show();
+
+                }else {
+
+                    //Toast.makeText(getApplicationContext(), "Not Runing already Alert: " + alert, Toast.LENGTH_LONG).show();
+
+                    if( !am.isMusicActive()) {
+
+                        isRunning = true;
+                        startplayer();
+                       // Toast.makeText(getApplicationContext(), "Alert on : " + alert, Toast.LENGTH_LONG).show();
+
+                        viewinorders.setBackgroundColor(RED);
+                        viewinorders.setVisibility(View.VISIBLE);
+                    }
+
+
+
+                }
+
+
+                }else{
+
+                    viewinorders.setBackgroundColor(getResources().getColor(android.R.color.white));
+                    viewinorders.setVisibility(View.INVISIBLE);
+
+                    if(isRunning) {
+                        isRunning = false;
+                    }
+
+                    if(player != null){
+                        player.stop();
+                        player.release();
+                        player = null;
+                    }
+
+                }
+
+
             }
 
             @Override
@@ -472,6 +571,8 @@ public class Dashboard extends AppCompatActivity {
 
     }//end
 
+
+
     public void getShift(String cunq){
 
         String bits = Shiftaction(cunq );
@@ -647,7 +748,14 @@ public class Dashboard extends AppCompatActivity {
 
     }
 
+    public void startplayer(){
 
+        player = MediaPlayer.create(this, R.raw.beep6);
+        player.setVolume(20, 20);
+        player.start();
+        //player.stop();
+        //player.release();
+    }
 
     public void Shiftactionset(String cunq, int State){
         String thisdevice = Settings.Secure.getString(this.getContentResolver(),
