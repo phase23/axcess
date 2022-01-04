@@ -15,6 +15,7 @@ import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -23,6 +24,8 @@ import android.os.StrictMode;
 import android.provider.Settings;
 import android.text.Html;
 import android.util.Log;
+import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -86,6 +89,7 @@ public class Pickup extends FragmentActivity implements OnMapReadyCallback,Googl
     private GoogleMap mMap;
     private ActivityPickupBinding binding;
     String responseBody;
+    String responseCheck;
     String fname;
     String cunq;
     String thisorderid;
@@ -95,7 +99,8 @@ public class Pickup extends FragmentActivity implements OnMapReadyCallback,Googl
     private List<Marker> destinationMarkers = new ArrayList<>();
     private List<Polyline> polylinePaths = new ArrayList<>();
     private ProgressDialog progressDialog;
-
+    LinearLayout ll;
+    LinearLayout lb;
     private List<Routes> routes = new ArrayList<>();
     private Marker infoMarker = null;
 
@@ -105,6 +110,11 @@ public class Pickup extends FragmentActivity implements OnMapReadyCallback,Googl
     private Marker drivermaker;
     String thephone;
     Button dialcustomer;
+    Button prvieworders;
+    Button startroutex;
+
+
+
     String theroute;
 
     @Override
@@ -118,8 +128,12 @@ public class Pickup extends FragmentActivity implements OnMapReadyCallback,Googl
         SharedPreferences.Editor prefsEditor = shared.edit();
 
 
-        LinearLayout ll = (LinearLayout) findViewById(R.id.topbar);
+        ll = (LinearLayout) findViewById(R.id.topbar);
         ll.setAlpha(0.5f);
+
+        lb = (LinearLayout) findViewById(R.id.bottombar);
+        lb.setAlpha(0.5f);
+
 
 
         int SDK_INT = android.os.Build.VERSION.SDK_INT;
@@ -144,9 +158,103 @@ public class Pickup extends FragmentActivity implements OnMapReadyCallback,Googl
        // String theroute = getroute(cunq, thisorderid);
 
         dialcustomer = (Button)findViewById(R.id.dialcustomer);
+        startroutex = (Button)findViewById(R.id.startjourney);
+        prvieworders = (Button)findViewById(R.id.prvieworders);
+
+
+        try {
+            getpickupstate("https://axcess.ai/barapp/driver_orderstatusformap.php?orderid="+thisorderid);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
 
 
+        prvieworders.setOnClickListener(new View.OnClickListener() {
+
+            public void onClick(View view) {
+
+                Intent intent = new Intent(Pickup.this, Orderpanel.class);
+                /*
+                intent.putExtra("passthephone",thephone);
+                intent.putExtra("orderid",thisorderid);
+                intent.putExtra("theroute",theroute);
+
+               */
+                startActivity(intent);
+
+
+            }
+        });
+
+
+
+        startroutex.setOnClickListener(new View.OnClickListener() {
+
+            public void onClick(View view) {
+
+      Log.i("action url state","click");
+
+                AlertDialog.Builder dialog = new AlertDialog.Builder(Pickup.this);
+                dialog.setCancelable(false);
+                dialog.setTitle("Return");
+                dialog.setMessage("Are you sure you want start this route?" );
+                dialog.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int id) {
+
+
+
+                        try {
+                            starttheroute("https://axcess.ai/barapp/ajax_dowhatwithorder.php?action=driversetroute&order="+thisorderid + "~" + cunq);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+
+
+                        dialog.dismiss();
+                    }
+                })
+                        .setNegativeButton("No ", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                //Action for "Cancel".
+                                dialog.dismiss();
+                            }
+                        });
+
+                final AlertDialog alert = dialog.create();
+                alert.show();
+
+
+
+
+
+
+
+
+
+            }
+        });
+
+
+
+        dialcustomer.setOnClickListener(new View.OnClickListener() {
+
+            public void onClick(View view) {
+
+                Intent intent = new Intent(Pickup.this, Notes.class);
+                intent.putExtra("passthephone",thephone);
+                intent.putExtra("orderid",thisorderid);
+                intent.putExtra("theroute",theroute);
+                startActivity(intent);
+
+
+            }
+        });
+
+
+        /*
         dialcustomer.setOnClickListener(new View.OnClickListener() {
 
             public void onClick(View view) {
@@ -187,6 +295,8 @@ public class Pickup extends FragmentActivity implements OnMapReadyCallback,Googl
 
             }
         });
+
+         */
 
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
@@ -513,7 +623,112 @@ public class Pickup extends FragmentActivity implements OnMapReadyCallback,Googl
 
 
 
+    void getpickupstate(String url) throws IOException {
+        System.out.println("ernng url  " + url);
+        Request request = new Request.Builder()
+                .url(url)
+                .build();
 
+        OkHttpClient client = new OkHttpClient();
+        client.newCall(request)
+                .enqueue(new Callback() {
+                    @Override
+                    public void onFailure(final Call call, IOException e) {
+                        // Error
+
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                // For the example, you can show an error dialog or a toast
+                                // on the main UI thread
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onResponse(Call call, final Response response) throws IOException {
+                        responseCheck = response.body().string();
+
+
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+
+
+                                Log.i("action url state",responseCheck);
+                                responseCheck = responseCheck.trim();
+                                if(responseCheck.equals("showbtn")){
+                                    startroutex.setVisibility(View.VISIBLE);
+                                    ll.setAlpha(1f);
+                                }else{
+                                    startroutex.setVisibility(View.INVISIBLE);
+                                    dialcustomer.setVisibility(View.VISIBLE);
+                                    prvieworders.setVisibility(View.VISIBLE);
+                                }
+
+                            }
+                        });
+
+                    }//end void
+
+                });
+    }
+
+
+    void starttheroute(String url) throws IOException {
+        System.out.println("ernng url  " + url);
+        Request request = new Request.Builder()
+                .url(url)
+                .build();
+
+        OkHttpClient client = new OkHttpClient();
+        client.newCall(request)
+                .enqueue(new Callback() {
+                    @Override
+                    public void onFailure(final Call call, IOException e) {
+                        // Error
+
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                // For the example, you can show an error dialog or a toast
+                                // on the main UI thread
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onResponse(Call call, final Response response) throws IOException {
+                        responseCheck = response.body().string();
+
+
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+
+
+                                Log.i("action url state",responseCheck);
+                                responseCheck = responseCheck.trim();
+
+                                    startroutex.setVisibility(View.INVISIBLE);
+                                dialcustomer.setVisibility(View.VISIBLE);
+                                //distancetoplace.setVisibility(View.VISIBLE);
+                                    ll.setAlpha(0.5f);
+
+
+                            }
+                        });
+
+                    }//end void
+
+                });
+    }
+
+
+    @Override
+    public void onBackPressed() {
+
+    }
 
 
     public String getroute(String drvierid, String theorder, String action){

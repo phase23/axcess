@@ -36,6 +36,14 @@ import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
 import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 
@@ -47,6 +55,8 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+
+import static android.graphics.Color.RED;
 
 public class MainActivity extends AppCompatActivity {
     EditText pin;
@@ -75,8 +85,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        String thisdevice = Settings.Secure.getString(this.getContentResolver(),
-                Settings.Secure.ANDROID_ID);
+        FirebaseDatabase database = FirebaseDatabase.getInstance("https://axcessdrivers-default-rtdb.firebaseio.com/");
 
         String globaldevice = Settings.Secure.getString(this.getContentResolver(),
                 Settings.Secure.ANDROID_ID);
@@ -132,9 +141,6 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-
-
-
         boolean connected = false;
         ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         if (connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_MOBILE).getState() == NetworkInfo.State.CONNECTED ||
@@ -152,7 +158,12 @@ public class MainActivity extends AppCompatActivity {
             Intent nointernet = new Intent(MainActivity.this, Nointernet.class);
             startActivity(nointernet);
 
-            }else {
+
+        }else {
+
+
+
+
 
 
             returndevice = isregistered();
@@ -162,6 +173,9 @@ public class MainActivity extends AppCompatActivity {
                 Intent devicesetup = new Intent(MainActivity.this, Register.class);
                 startActivity(devicesetup);
             }
+
+
+
 
 
 
@@ -183,11 +197,11 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-                    String thispin = pin.getText().toString();
-                    if (thispin.matches("")) {
-                        Toast.makeText(getApplicationContext(), "Enter your password", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
+                        String thispin = pin.getText().toString();
+                        if (thispin.matches("")) {
+                            Toast.makeText(getApplicationContext(), "Enter your password", Toast.LENGTH_SHORT).show();
+                            return;
+                        }
 
                     Log.i("[print]","blonk");
                     dialog = new SpotsDialog.Builder()
@@ -281,6 +295,10 @@ public class MainActivity extends AppCompatActivity {
                         }
 
                         if(dologin.equals("sucess")){
+
+
+
+
                             fname = separated[2];
                             Log.i("pass:unq -- ",cunq + "name: "+ fname);
 
@@ -330,6 +348,34 @@ public class MainActivity extends AppCompatActivity {
 
         String thisdevice = Settings.Secure.getString(this.getContentResolver(),
                 Settings.Secure.ANDROID_ID);
+        //Toast.makeText(getApplicationContext(), "check registered", Toast.LENGTH_LONG).show();
+
+
+        FirebaseDatabase database = FirebaseDatabase.getInstance("https://axcessdrivers-default-rtdb.firebaseio.com/");
+        DatabaseReference newdriver = database.getReference(thisdevice); // yourwebisteurl/rootNode if it exist otherwise don't pass any string to it.
+
+        newdriver.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot snapshot) {
+                if (snapshot.hasChild("status")) {
+                    // Exist! Do whatever.
+                } else {
+                    // Don't exist! Do something.
+                    newdriver.child("latitude").setValue("18.205397742382385");
+                    newdriver.child("longitude").setValue("-63.062720587183264");
+                    newdriver.child("status").setValue("waiting");
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError error) {
+                // Failed, how to handle?
+
+            }
+
+        });
+
+
 
         String url = "https://axcess.ai/barapp/driver_devicesetup.php?action=checkdevice&token="+thisdevice;
         Log.i("action url",url);

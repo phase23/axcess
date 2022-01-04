@@ -27,20 +27,19 @@
             android:paddingRight="20dp">
 
 
-
             <Button
                 android:id="@+id/backbtn"
-                android:layout_width="100dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="right"
 
                 android:layout_marginStart="1dp"
                 android:layout_marginLeft="1dp"
-                android:visibility="visible"
-                android:width="100dp"
+                android:width="150dp"
                 android:gravity="center"
-                android:text="Back"
+                android:text="Dashboard"
                 android:textColor="#020202"
+                android:visibility="visible"
                 app:backgroundTint="#FFFFFF" />
 
 

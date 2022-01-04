@@ -30,35 +30,91 @@
 
         android:layout_marginStart="1dp"
         android:layout_marginLeft="1dp"
-        android:visibility="visible"
+        android:visibility="gone"
         android:width="150dp"
         android:height="80dp"
         android:gravity="center"
-        android:text="Call Customer"
+        android:text="Customer"
 
         android:textColor="#020202"
         android:backgroundTint="#FFFFFF" />
+
+
+
+
+
+
+        <Button
+            android:id="@+id/startjourney"
+            android:layout_width="120dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            app:strokeColor="#000000"
+            app:strokeWidth="2dp"
+            android:layout_marginStart="1dp"
+            android:layout_marginLeft="1dp"
+
+            android:width="150dp"
+            android:height="80dp"
+            android:gravity="center"
+            android:text="Start Journey"
+            android:visibility="invisible"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#2f6526" />
+
 
         <TextView
             android:id="@+id/distancetoplace"
 
 
-            android:layout_width="234dp"
+            android:layout_width="145dp"
             android:layout_height="wrap_content"
             android:layout_alignParentTop="false"
             android:layout_alignParentEnd="true"
             android:layout_alignParentRight="false"
-            android:layout_gravity="right"
-            android:gravity="right"
+            android:layout_gravity="center"
+            android:gravity="center"
             android:paddingTop="15dp"
-            android:paddingRight="25dp"
+            android:paddingRight="15dp"
             android:text=""
             android:textSize="20dp"
+android:visibility="visible"
             android:textStyle="bold"
             tools:layout_editor_absoluteX="112dp"
             tools:layout_editor_absoluteY="112dp" />
 
     </LinearLayout>
 
+
+    <LinearLayout android:id="@+id/bottombar"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:background="@color/white"
+        android:orientation="horizontal"
+        android:paddingTop="10dp"
+        android:paddingLeft="20dp"
+        android:layout_gravity = "bottom"
+
+        android:paddingRight="20dp">
+
+        <Button
+            android:id="@+id/prvieworders"
+
+
+            android:layout_width="190dp"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="false"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="false"
+            android:layout_gravity="left"
+            android:layout_marginLeft="95dp"
+            android:gravity="left"
+            android:text="View Orders"
+            android:textSize="20dp"
+
+            tools:layout_editor_absoluteX="112dp"
+            tools:layout_editor_absoluteY="112dp" />
+
+    </LinearLayout>
 
 </fragment>

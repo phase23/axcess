@@ -26,15 +26,18 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <application
-        android:hardwareAccelerated="true"
         android:allowBackup="true"
+        android:hardwareAccelerated="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Drivers"
         android:usesCleartextTraffic="true">
-        <activity android:name=".Missedjobs"></activity>
+        <activity
+            android:name=".Notes"
+            android:exported="false" />
+        <activity android:name=".Missedjobs" />
         <activity android:name=".Nopermission" />
         <activity android:name=".Registerphoto_result" />
         <activity android:name=".Registerphoto" />

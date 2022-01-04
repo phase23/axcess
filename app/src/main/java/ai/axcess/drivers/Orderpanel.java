@@ -47,7 +47,7 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
-public class Orderpanel extends AppCompatActivity {
+public class    Orderpanel extends AppCompatActivity {
     Button back;
 
     String fname;
@@ -358,7 +358,7 @@ public class Orderpanel extends AppCompatActivity {
             LinearLayout.LayoutParams pickupbtn = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,180);
             pickupbtn.setMargins(0, 0, 0, 10);
             LinearLayout.LayoutParams dropoffbtn = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,180);
-            dropoffbtn.setMargins(0, 0, 0, 60);
+            dropoffbtn.setMargins(0, 0, 0, 25);
 
 
         //params.gravity = Gravity.TOP;
@@ -437,6 +437,9 @@ public class Orderpanel extends AppCompatActivity {
 
             Drawable img = getApplicationContext().getResources().getDrawable(R.drawable.ic_baseline_contact_phone_24);
 
+
+            /*
+
             if(is_pickedup.equals("1")) {
                 Button customerphone = new Button(getApplicationContext());
                 customerphone.setId(idup3);
@@ -509,6 +512,9 @@ public class Orderpanel extends AppCompatActivity {
 
 
             }
+
+
+             */
 
             if(is_pickedup.equals("0")) {
                 Button btn = new Button(getApplicationContext());
@@ -627,9 +633,9 @@ public class Orderpanel extends AppCompatActivity {
                 btn3.setText(" Order Completed " );
                 btn3.setTextSize(25);
                 btn3.setLayoutParams(dropoffbtn);
-                btn3.setPadding(5, 15, 5, 5);
-                //btn3.setBackgroundColor(Color.rgb(249, 249, 249));
-                btn3.setTextColor(getResources().getColor(R.color.black));
+                btn3.setPadding(5, 5, 5, 5);
+                btn3.setBackgroundColor(Color.rgb(0, 0, 0));
+                btn3.setTextColor(getResources().getColor(R.color.white));
                 layout.addView(btn3);
 
                 btn3 = ((Button) findViewById(dropoff));

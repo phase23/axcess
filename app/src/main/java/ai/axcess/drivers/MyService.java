@@ -98,7 +98,7 @@ public class MyService extends Service {
 
         mContext=this;
 
-
+/*
         orderhandler = new Handler();
         orderhandler.postDelayed(new Runnable() {
             public void run() {
@@ -112,7 +112,7 @@ public class MyService extends Service {
             }
         }, TWENTY_SECONDS);
 
-
+*/
         locationManager=(LocationManager) mContext.getSystemService(Context.LOCATION_SERVICE);
         locationManager.requestLocationUpdates( LocationManager.GPS_PROVIDER,
                 2000,
@@ -168,6 +168,8 @@ public class MyService extends Service {
     }
 
 
+
+
     LocationListener locationListenerGPS=new LocationListener() {
         @Override
         public void onLocationChanged(android.location.Location location) {
@@ -191,6 +193,8 @@ public class MyService extends Service {
             newdriver.child("longitude").setValue(longitude);
 
         }
+
+
 
 
 

@@ -214,7 +214,7 @@ public class Dashboard extends AppCompatActivity {
                 }else{
 
                     viewinorders.setBackgroundColor(getResources().getColor(android.R.color.white));
-                    viewinorders.setVisibility(View.INVISIBLE);
+                   // viewinorders.setVisibility(View.INVISIBLE);
 
                     if(isRunning) {
                         isRunning = false;

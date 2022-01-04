@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.regex.Pattern;
 
+import dmax.dialog.SpotsDialog;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.MultipartBody;
@@ -47,6 +48,7 @@ public class Vieworders extends AppCompatActivity {
     String locationto;
     MediaPlayer player;
     ProgressBar progressBar;
+    AlertDialog dialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -125,19 +127,15 @@ public class Vieworders extends AppCompatActivity {
                     @Override
                     public void onResponse(Call call, final Response response) throws IOException {
 
-                        String resulting = response.body().string();
+                        String resulting = response.body().string().trim();
+
+                        if(resulting.equals("9")) {
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
 
 
-                        try {
 
-                            String[] dishout = resulting.split(Pattern.quote("*"));
-                            System.out.println("number tickets: " + Arrays.toString(dishout));
-                            //dialog.dismiss();
-
-                            createLayoutDynamically(resulting);
-
-
-                        } catch(ArrayIndexOutOfBoundsException e) {
 
                             LinearLayout layout = (LinearLayout) findViewById(R.id.scnf);
                             layout.setOrientation(LinearLayout.VERTICAL);
@@ -145,14 +143,44 @@ public class Vieworders extends AppCompatActivity {
                             TextView newtxt = new TextView(getApplicationContext());
                             newtxt.setText(Html.fromHtml("No orders"));
                             newtxt.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f);
-                            newtxt.setPadding(0, 0, 0, 20 );
+                            newtxt.setPadding(0, 0, 0, 20);
                             newtxt.setTypeface(null, Typeface.BOLD);
                             newtxt.setGravity(Gravity.CENTER);
                             layout.addView(newtxt);
 
+                                }
+                            });
+
+
+
+
+                        }else {
+
+                            try {
+
+                                String[] dishout = resulting.split(Pattern.quote("*"));
+                                System.out.println("number tickets: " + Arrays.toString(dishout));
+                                //dialog.dismiss();
+
+                                createLayoutDynamically(resulting);
+
+
+                            } catch (ArrayIndexOutOfBoundsException e) {
+
+                                LinearLayout layout = (LinearLayout) findViewById(R.id.scnf);
+                                layout.setOrientation(LinearLayout.VERTICAL);
+
+                                TextView newtxt = new TextView(getApplicationContext());
+                                newtxt.setText(Html.fromHtml("No orders"));
+                                newtxt.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f);
+                                newtxt.setPadding(0, 0, 0, 20);
+                                newtxt.setTypeface(null, Typeface.BOLD);
+                                newtxt.setGravity(Gravity.CENTER);
+                                layout.addView(newtxt);
+
+                            }
+
                         }
-
-
 
 
 

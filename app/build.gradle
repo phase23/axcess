@@ -11,8 +11,8 @@ android {
         applicationId "ai.axcess.drivers"
         minSdkVersion 23
         targetSdkVersion 30
-        versionCode 6
-        versionName "6"
+        versionCode 10
+        versionName "10"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -47,10 +47,12 @@ dependencies {
     testImplementation 'junit:junit:4.+'
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
-    implementation 'com.squareup.okhttp3:okhttp:3.5.0'
+        implementation 'com.squareup.okhttp3:okhttp:3.5.0'
     implementation 'com.google.maps.android:android-maps-utils:2.2.3'
     implementation 'commons-io:commons-io:2.6'
     implementation 'com.github.d-max:spots-dialog:1.1@aar'
+    //implementation 'com.skype.android.skype-android-sdk:MobileSdk:1.0.0.0'
+
     //implementation 'org.apache.directory.studio:org.apache.commons.io:2.4'
     //implementation 'com.github.jd-alexander:library:1.1.0'
     //implementation 'com.github.ar-android:DrawRouteMaps:1.0.0'
